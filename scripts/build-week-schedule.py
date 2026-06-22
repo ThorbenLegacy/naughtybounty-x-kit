@@ -26,6 +26,8 @@ def creative_to_html(creative: str, color_scheme: str = "dark") -> str:
         return f"../creatives/html/bullets-users{suffix}/x-bullets-u-default-standalone.html"
     if kind == "cards":
         return f"../creatives/html/cards{suffix}/x-card-{name}-standalone.html"
+    if kind == "custom":
+        return f"../creatives/html/custom/{color_scheme}/{name}.html"
     return ""
 
 
@@ -87,7 +89,11 @@ def build_week(week_path: Path) -> None:
             tags = post.get("hashtags") or hashtags_for(post["audience"], post["theme"])
             color_scheme = post.get("colorScheme") or ("light" if post_index % 2 else "dark")
             post_index += 1
-            img = image_for_scheme(post.get("image"), color_scheme)
+            img = post.get("image")
+            if img and post.get("mediaType") != "video" and not str(img).startswith("uploads/"):
+                img = image_for_scheme(img, color_scheme)
+            elif img and color_scheme == "light" and str(img).startswith("exports/"):
+                img = image_for_scheme(img, color_scheme)
             post_full = {**post, "hashtags": tags, "colorScheme": color_scheme, "image": img}
             posts_out.append({
                 "id": post["id"],
@@ -96,6 +102,7 @@ def build_week(week_path: Path) -> None:
                 "link": post.get("link", "https://naughtybounty.com/for-creators"),
                 "hashtags": tags,
                 "colorScheme": color_scheme,
+                **({"mediaType": post["mediaType"]} if post.get("mediaType") else {}),
             })
             html = creative_to_html(post["creative"], color_scheme)
             png = f"../{img}" if img else ""

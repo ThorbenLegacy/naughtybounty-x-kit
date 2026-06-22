@@ -21,6 +21,7 @@
     "x:schedule": "tsx bot/scheduler.ts",
     "x:dashboard": "tsx bot/dashboard.ts",
     "x:dashboard:video": "python3 scripts/record-dashboard-video.py",
+    "x:studio:video": "python3 scripts/record-studio-video.py",
     "metadata:build": "python3 scripts/build-metadata.py",
     "x:analytics": "tsx bot/fetch-analytics.ts"
   },

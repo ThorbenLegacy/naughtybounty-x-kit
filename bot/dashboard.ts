@@ -18,6 +18,7 @@ const PORT = Number(process.env.PORT ?? 8765);
 const HOST = process.env.HOST ?? (process.env.RAILWAY_ENVIRONMENT ? "0.0.0.0" : "127.0.0.1");
 const IS_PRODUCTION = Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === "production");
 const DASHBOARD_HTML = resolve(KIT_ROOT, "schedule", "dashboard.html");
+const STUDIO_HTML = resolve(KIT_ROOT, "schedule", "studio.html");
 const CATALOG_PATH = resolve(KIT_ROOT, "data", "content-catalog.json");
 const ASSETS_DIR = resolve(KIT_ROOT, "assets");
 const EXPORTS_DIR = resolve(KIT_ROOT, "exports");
@@ -51,6 +52,7 @@ import {
   setSessionCookie,
   verifyCredentials,
 } from "./lib/auth";
+import { handleStudioApi, serveCreativeHtml, serveUpload } from "./lib/studio";
 
 let refreshInFlight = false;
 
@@ -387,6 +389,29 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === "GET" && url.pathname === "/studio") {
+    if (!existsSync(STUDIO_HTML)) {
+      sendJson(res, { error: "studio.html fehlt" }, 404);
+      return;
+    }
+    sendHtml(res, readFileSync(STUDIO_HTML, "utf-8"));
+    return;
+  }
+
+  if (url.pathname.startsWith("/creatives/html/")) {
+    const rel = url.pathname.slice("/creatives/html/".length);
+    if (serveCreativeHtml(req, res, rel)) return;
+  }
+
+  if (url.pathname.startsWith("/uploads/")) {
+    const rel = url.pathname.slice("/uploads/".length);
+    if (serveUpload(req, res, rel)) return;
+  }
+
+  if (url.pathname.startsWith("/api/studio/")) {
+    if (handleStudioApi(req, res, url.pathname, req.method ?? "GET")) return;
+  }
+
   if (req.method === "GET" && url.pathname === "/api/catalog") {
     sendJson(res, readJson(CATALOG_PATH));
     return;
@@ -428,13 +453,16 @@ const server = createServer(async (req, res) => {
   sendJson(res, { error: "Not found" }, 404);
 });
 
-server.listen(PORT, HOST, () => {
+function printStartupBanner(port: number): void {
   const hostLabel = HOST === "0.0.0.0" ? "0.0.0.0" : HOST;
-  const url = `http://${hostLabel === "0.0.0.0" ? "127.0.0.1" : hostLabel}:${PORT}`;
+  const url = `http://${hostLabel === "0.0.0.0" ? "127.0.0.1" : hostLabel}:${port}`;
   const lightOk = existsSync(EXPORTS_LIGHT_DIR);
-  console.log("NaughtyBounty X Command Board");
-  console.log(`  listening on ${hostLabel}:${PORT}`);
-  if (!IS_PRODUCTION) console.log(`  ${url}`);
+  console.log("NaughtyBounty X Command Board + Content Studio");
+  console.log(`  listening on ${hostLabel}:${port}`);
+  if (!IS_PRODUCTION) {
+    console.log(`  ${url}`);
+    console.log(`  Content Studio: ${url.replace(/\/$/, "")}/studio`);
+  }
   console.log(`  exports: ${existsSync(EXPORTS_DIR) ? "ok" : "fehlt"} · exports-light: ${lightOk ? "ok" : "fehlt — npm run build:all"}`);
   if (authEnabled()) {
     console.log(`  login: aktiv · Nutzer umbra / zero / shade · Passwort via DASHBOARD_PASSWORD`);
@@ -447,7 +475,31 @@ server.listen(PORT, HOST, () => {
   }
   console.log("  Strg+C zum Beenden\n");
   if (!IS_PRODUCTION) openBrowser(url);
-});
+}
+
+function tryListen(port: number, attemptsLeft: number): void {
+  server.once("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE" && attemptsLeft > 1 && !IS_PRODUCTION) {
+      console.warn(`Port ${port} belegt — versuche ${port + 1} …`);
+      tryListen(port + 1, attemptsLeft - 1);
+      return;
+    }
+    if (err.code === "EADDRINUSE") {
+      console.error(`\nPort ${port} ist bereits belegt (alter Dashboard-Server?).`);
+      console.error("Windows: netstat -ano | findstr :8765  →  taskkill /PID <PID> /F");
+      console.error("Oder anderen Port: $env:PORT=8766; npm start\n");
+    }
+    throw err;
+  });
+  server.listen(port, HOST, () => {
+    if (port !== PORT) {
+      console.warn(`  Port ${PORT} war belegt — nutze ${port}.`);
+    }
+    printStartupBanner(port);
+  });
+}
+
+tryListen(PORT, 5);
 
 process.on("SIGINT", () => {
   server.close();

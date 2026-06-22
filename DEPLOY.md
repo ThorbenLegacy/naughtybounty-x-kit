@@ -37,6 +37,9 @@ Der Container baut beim ersten Deploy alle Creatives (`npm run build:all` inkl. 
 | `X_API_KEY` … | optional | OAuth1 Fallback für Media-Upload |
 | `DASHBOARD_PASSWORD` | **empfohlen** | Login für umbra / zero / shade (Standard: `nb-umbra-zero-shade`) |
 | `DASHBOARD_SESSION_SECRET` | optional | Cookie-Signatur (zufälliger String) |
+| `DASHBOARD_AUTH_DISABLED` | optional | `1` = Login aus (nur lokal) |
+| `BOT_LAST_INDEX` | optional | `0` = erster Wochenpost gilt als erledigt, Bot startet bei Post 2 |
+
 ### KPIs / X-API funktionieren nicht (401 / 400)
 
 Access Tokens laufen ab. **Lokal erneuern**, dann Werte nach Railway kopieren:
@@ -61,6 +64,8 @@ OAuth1 (`X_API_KEY` …) ist optional; KPIs laufen mit gültigem OAuth2.
 Kopiere Werte aus `.env.local` (lokal) — **nie** committen.
 
 ### Dashboard-Login
+
+- **Command Board:** `/` · **Content Studio:** `/studio`
 
 - **Benutzer:** `umbra`, `zero`, `shade` (Dropdown auf `/login`)
 - **Passwort:** `DASHBOARD_PASSWORD` in Railway setzen — sonst Default `nb-umbra-zero-shade`

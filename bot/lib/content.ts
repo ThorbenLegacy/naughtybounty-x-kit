@@ -33,17 +33,30 @@ function emptyState(): PostState {
 }
 
 export function loadState(): PostState {
-  if (!existsSync(STATE_PATH)) return emptyState();
-  const raw = JSON.parse(readFileSync(STATE_PATH, "utf-8")) as PostState & {
-    lastPostedDate?: string | null;
-  };
-  return {
-    ...emptyState(),
-    ...raw,
-    todayDate: raw.todayDate ?? raw.lastPostedDate ?? null,
-    postsToday: raw.postsToday ?? (raw.todayDate || raw.lastPostedDate ? 1 : 0),
-    postedSlots: raw.postedSlots ?? [],
-  };
+  let state: PostState;
+  if (!existsSync(STATE_PATH)) {
+    state = emptyState();
+  } else {
+    const raw = JSON.parse(readFileSync(STATE_PATH, "utf-8")) as PostState & {
+      lastPostedDate?: string | null;
+    };
+    state = {
+      ...emptyState(),
+      ...raw,
+      todayDate: raw.todayDate ?? raw.lastPostedDate ?? null,
+      postsToday: raw.postsToday ?? (raw.todayDate || raw.lastPostedDate ? 1 : 0),
+      postedSlots: raw.postedSlots ?? [],
+    };
+  }
+
+  const seed = process.env.BOT_LAST_INDEX?.trim();
+  if (seed !== undefined && seed !== "") {
+    const n = Number.parseInt(seed, 10);
+    if (!Number.isNaN(n) && n >= -1 && state.lastIndex < n) {
+      state.lastIndex = n;
+    }
+  }
+  return state;
 }
 
 export function saveState(state: PostState): void {
@@ -130,6 +143,9 @@ export function resolveImagePath(post: PostEntry): string | null {
 }
 
 export function validateCreativeImage(imagePath: string): void {
+  if (isVideoPath(imagePath) || imagePath.replace(/\\/g, "/").includes("/uploads/")) {
+    return;
+  }
   const rel = relative(KIT_ROOT, imagePath).replace(/\\/g, "/");
   const script = resolve(KIT_ROOT, "scripts", "validate-creative.py");
   const py = process.platform === "win32" ? "python" : "python3";
@@ -257,12 +273,19 @@ export function xCredentialsHint(): string {
   return "X-API fehlt — X_OAUTH2_ACCESS_TOKEN (+ Refresh) in Railway Variables setzen";
 }
 
-function mediaTypeForPath(imagePath: string): `${string}/${string}` {
+function mediaTypeForPath(imagePath: string): string {
   const lower = imagePath.toLowerCase();
+  if (lower.endsWith(".mp4")) return "video/mp4";
+  if (lower.endsWith(".mov")) return "video/quicktime";
+  if (lower.endsWith(".webm")) return "video/webm";
   if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
   if (lower.endsWith(".gif")) return "image/gif";
   if (lower.endsWith(".webp")) return "image/webp";
   return "image/png";
+}
+
+function isVideoPath(imagePath: string): boolean {
+  return /\.(mp4|mov|webm)$/i.test(imagePath);
 }
 
 function mediaUploadError(error: unknown): string {

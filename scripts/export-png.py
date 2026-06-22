@@ -21,6 +21,7 @@ EXPORT_THEMES = [
             ("creatives/html/bullets", "exports/bullets"),
             ("creatives/html/bullets-users", "exports/bullets-users"),
             ("creatives/html/cards", "exports/cards"),
+            ("creatives/html/custom/dark", "exports/custom"),
         ],
     },
     {
@@ -32,6 +33,7 @@ EXPORT_THEMES = [
             ("creatives/html/bullets-light", "exports-light/bullets"),
             ("creatives/html/bullets-users-light", "exports-light/bullets-users"),
             ("creatives/html/cards-light", "exports-light/cards"),
+            ("creatives/html/custom/light", "exports-light/custom"),
         ],
     },
 ]
@@ -86,10 +88,63 @@ def stem_to_id(stem: str) -> str:
     return stem
 
 
+def creative_to_paths(creative: str, theme_label: str) -> tuple[Path, Path, tuple[int, int, int]] | None:
+    """Resolve HTML source + PNG output for one creative slug (e.g. brand/deine-regeln)."""
+    theme = next((t for t in EXPORT_THEMES if t["label"] == theme_label), None)
+    if not theme:
+        return None
+    kind, name = creative.split("/", 1)
+    suffix = "-light" if theme_label == "light" else ""
+    html_rel: str | None = None
+    export_rel: str | None = None
+    if kind == "brand":
+        html_rel = f"creatives/html/brand{suffix}/x-brand-{name}.html"
+        export_rel = f"exports-light/brand/{name}.png" if theme_label == "light" else f"exports/brand/{name}.png"
+    elif kind == "brand-users":
+        html_rel = f"creatives/html/brand-users{suffix}/x-brand-u-{name}.html"
+        export_rel = f"exports-light/brand-users/{name}.png" if theme_label == "light" else f"exports/brand-users/{name}.png"
+    elif kind == "bullets":
+        slug = "default" if name == "default" else name
+        html_rel = f"creatives/html/bullets{suffix}/x-bullets-{slug}.html"
+        export_rel = f"exports-light/bullets/default.png" if theme_label == "light" else f"exports/bullets/default.png"
+    elif kind == "bullets-users":
+        html_rel = f"creatives/html/bullets-users{suffix}/x-bullets-u-default.html"
+        export_rel = f"exports-light/bullets-users/default.png" if theme_label == "light" else f"exports/bullets-users/default.png"
+    elif kind == "cards":
+        html_rel = f"creatives/html/cards{suffix}/x-card-{name}.html"
+        export_rel = f"exports-light/cards/{name}.png" if theme_label == "light" else f"exports/cards/{name}.png"
+    elif kind == "custom":
+        html_rel = f"creatives/html/custom/{theme_label}/{name}.html"
+        export_rel = f"exports-light/custom/{name}.png" if theme_label == "light" else f"exports/custom/{name}.png"
+    else:
+        return None
+    html = ROOT / html_rel
+    out = ROOT / export_rel
+    return html, out, theme["ad_bg"]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--scale", type=int, default=2)
+    parser.add_argument("--creative", type=str, help="Einzelnes Creative, z.B. brand/deine-regeln")
+    parser.add_argument("--theme", choices=["dark", "light", "both"], default="both")
     args = parser.parse_args()
+
+    if args.creative:
+        themes = ["dark", "light"] if args.theme == "both" else [args.theme]
+        for theme_label in themes:
+            resolved = creative_to_paths(args.creative, theme_label)
+            if not resolved:
+                print(f"Unbekanntes Creative: {args.creative}")
+                raise SystemExit(1)
+            html, out, ad_bg = resolved
+            if not html.exists():
+                print(f"HTML fehlt: {html.relative_to(ROOT)} — npm run build")
+                raise SystemExit(1)
+            print(f"Export {theme_label} … {args.creative}")
+            export_one(html, out, ad_bg, args.scale)
+        print("Fertig.")
+        return
 
     for theme in EXPORT_THEMES:
         print(f"\nExport {theme['label']} …")

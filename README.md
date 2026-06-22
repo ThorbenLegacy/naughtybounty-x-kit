@@ -68,6 +68,15 @@ GitHub Actions: `.github/workflows/x-posts.yml` — 3 Cron-Trigger/Tag.
 
 **Wochenplan:** `config/weeks/2026-06-23.json` → `npm run week:build` → `schedule/woche-2026-06-23.html` + `posts-week.json` (21 Posts). Bot: `npm run x:preview -- --week`
 
+### Content Studio (Web-UI)
+
+Mit laufendem Dashboard (`npm start`):
+
+- **Command Board:** `http://127.0.0.1:8765/` — Scheduler, KPIs, Analyse
+- **Content Studio:** `http://127.0.0.1:8765/studio` — Wortings bearbeiten, Creatives als PNG exportieren (Dark/Light), Wochenplan per Drag &amp; Drop, Bilder/Videos hochladen
+
+Workflow: Wortings speichern → **HTML neu bauen** → **PNG exportieren** · Oder unter **Custom HTML** eigenes Template einfügen → speichern → PNG exportieren → Wochenplan anpassen → **posts-week.json bauen**
+
 **Hinweis:** Live-Posting braucht X API Write-Credits (Paid Plan).
 
 ## Creative-Formate

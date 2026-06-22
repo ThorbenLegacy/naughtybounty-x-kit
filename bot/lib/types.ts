@@ -5,6 +5,8 @@ export type PostEntry = {
   link?: string;
   /** Ohne # — wird automatisch ergänzt */
   hashtags?: string[];
+  colorScheme?: "dark" | "light";
+  mediaType?: "image" | "video" | "creative";
 };
 
 export type PostsFile = {
