@@ -37,6 +37,7 @@ import {
   resetDayIfNeeded,
   todayInTimezone,
   xCredentialsHint,
+  createXClientFresh,
 } from "./lib/content";
 import { fetchAnalytics, loadAnalytics } from "./lib/analytics";
 import {
@@ -349,6 +350,26 @@ const server = createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/api/assets-manifest") {
     sendJson(res, buildAssetsManifest());
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/auth/status") {
+    const result = await createXClientFresh();
+    let username: string | null = null;
+    if (result.client) {
+      try {
+        const me = await result.client.v2.me();
+        username = me.data?.username ?? null;
+      } catch {
+        /* ignore */
+      }
+    }
+    sendJson(res, {
+      authMethod: result.authMethod,
+      username,
+      ok: Boolean(result.client),
+      errors: result.authErrors,
+    });
     return;
   }
 

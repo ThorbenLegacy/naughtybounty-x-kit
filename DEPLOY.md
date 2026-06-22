@@ -37,7 +37,26 @@ Der Container baut beim ersten Deploy alle Creatives (`npm run build:all` inkl. 
 | `X_API_KEY` … | optional | OAuth1 Fallback für Media-Upload |
 | `DASHBOARD_PASSWORD` | **empfohlen** | Login für umbra / zero / shade (Standard: `nb-umbra-zero-shade`) |
 | `DASHBOARD_SESSION_SECRET` | optional | Cookie-Signatur (zufälliger String) |
-| `DASHBOARD_AUTH_DISABLED` | optional | `1` = Login aus (nur lokal) |
+### KPIs / X-API funktionieren nicht (401 / 400)
+
+Access Tokens laufen ab. **Lokal erneuern**, dann Werte nach Railway kopieren:
+
+```bash
+cd naughtybounty-x-kit
+npm run x:refresh    # oder npm run x:oauth2 bei abgelaufenem Refresh-Token
+npm run x:verify     # muss ✓ zeigen
+```
+
+**Diese 4 Variablen in Railway neu setzen** (aus `naughtybounty-x-kit/.env.local`):
+
+- `X_OAUTH2_ACCESS_TOKEN`
+- `X_OAUTH2_REFRESH_TOKEN`
+- `X_CLIENT_ID` — OAuth **2.0** Client ID (User Auth Settings), **nicht** API Key
+- `X_CLIENT_SECRET` — OAuth **2.0** Client Secret, **nicht** API Secret
+
+Diagnose nach Login: `GET /api/auth/status` auf deiner Railway-URL.
+
+OAuth1 (`X_API_KEY` …) ist optional; KPIs laufen mit gültigem OAuth2.
 
 Kopiere Werte aus `.env.local` (lokal) — **nie** committen.
 
