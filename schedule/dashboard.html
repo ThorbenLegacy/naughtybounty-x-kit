@@ -771,13 +771,26 @@
       status.textContent = "Abruf läuft …";
       status.className = "status";
       try {
-        const res = await fetch("/api/analytics/refresh", { method: "POST" });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Fehler");
+        const res = await fetch("/api/analytics/refresh", { method: "POST", credentials: "same-origin" });
+        let data;
+        try {
+          data = await res.json();
+        } catch {
+          throw new Error(res.status === 401 ? "Nicht angemeldet — bitte neu einloggen" : `Server ${res.status}`);
+        }
+        if (!res.ok) throw new Error(data.error || `Fehler ${res.status}`);
         analytics = data;
         renderKpis(); renderTweets();
-        status.textContent = `Aktualisiert ${dt(data.fetchedAt)}`;
-        status.className = "status ok";
+        const errMsg = (data.errors ?? []).filter(Boolean).join(" · ");
+        if (errMsg) {
+          status.textContent = errMsg;
+          status.className = "status err";
+        } else {
+          status.textContent = `Aktualisiert ${dt(data.fetchedAt)}`;
+          status.className = "status ok";
+        }
+        const notes = [...(data.notes ?? []), ...(data.errors ?? [])];
+        document.getElementById("analyticsNotes").innerHTML = notes.map((n) => `• ${n}`).join("<br>");
       } catch (e) {
         status.textContent = e.message;
         status.className = "status err";

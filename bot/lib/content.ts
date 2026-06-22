@@ -179,6 +179,45 @@ export function createXClient(): TwitterApi | null {
   return createOAuth1Client();
 }
 
+/** OAuth2-Token bei 401 per Refresh erneuern (Railway: nur process.env, kein .env.local). */
+export async function createXClientFresh(): Promise<TwitterApi | null> {
+  let client = createXClient();
+  if (!client) return null;
+
+  const verify = async (c: TwitterApi) => {
+    await c.v2.me({ "user.fields": ["username"] });
+  };
+
+  try {
+    await verify(client);
+    return client;
+  } catch (e) {
+    const unauthorized =
+      e instanceof ApiResponseError && (e.code === 401 || e.code === 403);
+    if (!unauthorized) throw e;
+  }
+
+  const clientId = env("X_CLIENT_ID");
+  const clientSecret = env("X_CLIENT_SECRET");
+  const refreshToken = env("X_OAUTH2_REFRESH_TOKEN");
+  if (!clientId || !clientSecret || !refreshToken) return client;
+
+  const app = new TwitterApi({ clientId, clientSecret });
+  const result = await app.refreshOAuth2Token(refreshToken);
+  process.env.X_OAUTH2_ACCESS_TOKEN = result.accessToken;
+  if (result.refreshToken) process.env.X_OAUTH2_REFRESH_TOKEN = result.refreshToken;
+  client = result.client;
+  await verify(client);
+  return client;
+}
+
+export function xCredentialsHint(): string {
+  const mode = authMode();
+  if (mode === "oauth2") return "OAuth2 konfiguriert";
+  if (mode === "oauth1") return "OAuth1 konfiguriert";
+  return "X-API fehlt — X_OAUTH2_ACCESS_TOKEN (+ Refresh) in Railway Variables setzen";
+}
+
 function mediaTypeForPath(imagePath: string): `${string}/${string}` {
   const lower = imagePath.toLowerCase();
   if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";

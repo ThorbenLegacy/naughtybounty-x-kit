@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TwitterApi, ApiResponseError } from "twitter-api-v2";
-import { createXClient, loadState } from "./content";
+import { createXClientFresh, loadState } from "./content";
 
 const BOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const KIT_ROOT = resolve(BOT_DIR, "..");
@@ -222,12 +222,18 @@ export function saveAnalytics(data: AnalyticsData): void {
 }
 
 export async function fetchAnalytics(): Promise<AnalyticsData> {
-  const client = createXClient();
   const errors: string[] = [];
   const notes: string[] = [
     "Impressionen & Klicks erfordern OAuth2 mit tweet.read + ggf. Elevated Access.",
     "Posts werden per bot/state.json (tweetId) oder Text-Match verknüpft.",
   ];
+
+  let client: Awaited<ReturnType<typeof createXClientFresh>> = null;
+  try {
+    client = await createXClientFresh();
+  } catch (e) {
+    errors.push(`X-Auth: ${formatApiError(e)}`);
+  }
 
   if (!client) {
     return {
@@ -245,7 +251,10 @@ export async function fetchAnalytics(): Promise<AnalyticsData> {
         avgEngagementRate: null,
       },
       tweets: [],
-      errors: ["Kein X-Client — OAuth2 oder OAuth1 in .env.local konfigurieren."],
+      errors: [
+        ...errors,
+        "Kein X-Client — X_OAUTH2_ACCESS_TOKEN, X_OAUTH2_REFRESH_TOKEN, X_CLIENT_ID, X_CLIENT_SECRET in Railway Variables setzen.",
+      ],
       notes,
     };
   }

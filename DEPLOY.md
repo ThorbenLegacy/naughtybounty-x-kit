@@ -31,9 +31,9 @@ Der Container baut beim ersten Deploy alle Creatives (`npm run build:all` inkl. 
 | Variable | Pflicht | Beschreibung |
 |----------|---------|--------------|
 | `PORT` | auto | von Railway gesetzt |
-| `X_OAUTH2_ACCESS_TOKEN` | für Bot/Analytics | OAuth2 Access Token |
-| `X_OAUTH2_REFRESH_TOKEN` | empfohlen | Token-Refresh |
-| `X_CLIENT_ID` / `X_CLIENT_SECRET` | empfohlen | OAuth2 App |
+| `X_OAUTH2_ACCESS_TOKEN` | **für KPIs/Bot** | OAuth2 Access Token (@LucaBrandblue) |
+| `X_OAUTH2_REFRESH_TOKEN` | **empfohlen** | Token-Refresh (sonst läuft Access Token ab) |
+| `X_CLIENT_ID` / `X_CLIENT_SECRET` | **empfohlen** | OAuth2 App — nötig für automatischen Token-Refresh |
 | `X_API_KEY` … | optional | OAuth1 Fallback für Media-Upload |
 | `DASHBOARD_PASSWORD` | **empfohlen** | Login für umbra / zero / shade (Standard: `nb-umbra-zero-shade`) |
 | `DASHBOARD_SESSION_SECRET` | optional | Cookie-Signatur (zufälliger String) |

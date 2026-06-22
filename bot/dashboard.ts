@@ -36,6 +36,7 @@ import {
   postsRemainingToday,
   resetDayIfNeeded,
   todayInTimezone,
+  xCredentialsHint,
 } from "./lib/content";
 import { fetchAnalytics, loadAnalytics } from "./lib/analytics";
 import {
@@ -419,6 +420,7 @@ server.listen(PORT, HOST, () => {
   } else {
     console.log("  login: deaktiviert (DASHBOARD_AUTH_DISABLED=1)");
   }
+  console.log(`  x-api: ${xCredentialsHint()}`);
   if (!lightOk) {
     console.log("  Light-Previews: exports-light/ fehlt — npm run build:all oder npm run assets:pull");
   }
