@@ -12,7 +12,7 @@ config({ path: resolve(KIT_ROOT, ".env") });
 import { ApiResponseError } from "twitter-api-v2";
 import {
   authMode,
-  createXClient,
+  createXClientFresh,
   loadPosts,
   OAUTH2_SCOPES,
   testMediaUpload,
@@ -30,11 +30,15 @@ async function main(): Promise<void> {
 
   console.log(`Auth-Modus: ${mode}`);
 
-  const client = createXClient();
+  const authResult = await createXClientFresh();
+  const client = authResult.client;
   if (!client) {
     console.error("Client konnte nicht erstellt werden.");
+    for (const err of authResult.authErrors) console.error(`  ${err}`);
     process.exit(1);
   }
+  const effectiveMode = authResult.authMethod ?? mode;
+  console.log(`Verbindung über: ${effectiveMode}`);
 
   try {
     const { account } = loadPosts();
@@ -61,7 +65,7 @@ async function main(): Promise<void> {
   } catch (error) {
     if (error instanceof ApiResponseError && error.code === 401) {
       console.error("✗ Auth fehlgeschlagen (401)");
-      if (mode === "oauth1") {
+      if (effectiveMode === "oauth1") {
         console.error("  OAuth 1.0a Keys prüfen/regenerieren.");
       } else {
         console.error("  X_OAUTH2_ACCESS_TOKEN erneuern: npm run x:oauth2");

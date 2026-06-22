@@ -22,7 +22,7 @@ import {
   authMode,
   buildTweetText,
   canPostToday,
-  createXClient,
+  createXClientFresh,
   currentSlot,
   findPostById,
   hasCredentials,
@@ -40,6 +40,7 @@ import {
   todayInTimezone,
   validateCreativeImage,
   verifyClient,
+  xCredentialsHint,
 } from "./lib/content";
 import { ApiResponseError } from "twitter-api-v2";
 
@@ -115,9 +116,12 @@ async function main(): Promise<void> {
     return;
   }
 
-  const client = createXClient();
+  const authResult = await createXClientFresh();
+  const client = authResult.client;
   if (!client) {
     console.error("X-Client konnte nicht erstellt werden.");
+    for (const err of authResult.authErrors) console.error(`  ${err}`);
+    console.error(`  ${xCredentialsHint()}`);
     process.exit(1);
   }
 
@@ -125,7 +129,7 @@ async function main(): Promise<void> {
     const user = await verifyClient(client);
     const handle = `@${user.username}`;
     const expected = account.startsWith("@") ? account : `@${account}`;
-    console.log(`Posten als: ${handle} (${authMode()})`);
+    console.log(`Posten als: ${handle} (${authResult.authMethod ?? authMode()})`);
     if (handle.toLowerCase() !== expected.toLowerCase()) {
       console.warn(`Warnung: Token ist ${handle}, posts.json erwartet ${expected}.`);
     }
