@@ -132,7 +132,8 @@ export function resolveImagePath(post: PostEntry): string | null {
 export function validateCreativeImage(imagePath: string): void {
   const rel = relative(KIT_ROOT, imagePath).replace(/\\/g, "/");
   const script = resolve(KIT_ROOT, "scripts", "validate-creative.py");
-  const result = spawnSync("python", [script, rel], {
+  const py = process.platform === "win32" ? "python" : "python3";
+  const result = spawnSync(py, [script, rel], {
     cwd: KIT_ROOT,
     encoding: "utf-8",
   });
