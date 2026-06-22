@@ -38,6 +38,17 @@ import {
   todayInTimezone,
 } from "./lib/content";
 import { fetchAnalytics, loadAnalytics } from "./lib/analytics";
+import {
+  authEnabled,
+  clearSessionCookie,
+  isPublicPath,
+  loginPageHtml,
+  parseLoginBody,
+  redirect,
+  resolveUser,
+  setSessionCookie,
+  verifyCredentials,
+} from "./lib/auth";
 
 let refreshInFlight = false;
 
@@ -47,7 +58,7 @@ function readJson(path: string): unknown {
 }
 
 function rebuildCatalog(): unknown {
-  execSync("python scripts/build-metadata.py", { cwd: KIT_ROOT, encoding: "utf-8" });
+  execSync("python3 scripts/build-metadata.py", { cwd: KIT_ROOT, encoding: "utf-8" });
   return readJson(CATALOG_PATH);
 }
 
@@ -219,6 +230,8 @@ function buildAssetsManifest(): { files: string[]; generatedAt: string } {
   ];
   return { files, generatedAt: new Date().toISOString() };
 }
+
+const IMAGE_TYPES: Record<string, string> = {
   png: "image/png",
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
@@ -277,6 +290,45 @@ function serveStatic(
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", `http://127.0.0.1:${PORT}`);
+
+  if (req.method === "GET" && url.pathname === "/login") {
+    if (resolveUser(req)) {
+      redirect(res, "/");
+      return;
+    }
+    sendHtml(res, loginPageHtml(url.searchParams.get("error") ?? undefined));
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/login") {
+    const body = await readBody(req);
+    const { username, password } = parseLoginBody(body);
+    if (verifyCredentials(username, password)) {
+      setSessionCookie(res, username as "umbra" | "zero" | "shade");
+      redirect(res, "/");
+      return;
+    }
+    redirect(res, "/login?error=Falscher+Benutzer+oder+Passwort");
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/logout") {
+    clearSessionCookie(res);
+    redirect(res, "/login");
+    return;
+  }
+
+  if (authEnabled() && !isPublicPath(url.pathname, req.method ?? "GET")) {
+    const user = resolveUser(req);
+    if (!user) {
+      if (url.pathname.startsWith("/api/")) {
+        sendJson(res, { error: "Unauthorized" }, 401);
+        return;
+      }
+      redirect(res, `/login?next=${encodeURIComponent(url.pathname)}`);
+      return;
+    }
+  }
 
   for (const route of STATIC_ROUTES) {
     if (url.pathname.startsWith(route.prefix)) {
@@ -362,6 +414,11 @@ server.listen(PORT, HOST, () => {
   console.log(`  listening on ${hostLabel}:${PORT}`);
   if (!IS_PRODUCTION) console.log(`  ${url}`);
   console.log(`  exports: ${existsSync(EXPORTS_DIR) ? "ok" : "fehlt"} · exports-light: ${lightOk ? "ok" : "fehlt — npm run build:all"}`);
+  if (authEnabled()) {
+    console.log(`  login: aktiv · Nutzer umbra / zero / shade · Passwort via DASHBOARD_PASSWORD`);
+  } else {
+    console.log("  login: deaktiviert (DASHBOARD_AUTH_DISABLED=1)");
+  }
   if (!lightOk) {
     console.log("  Light-Previews: exports-light/ fehlt — npm run build:all oder npm run assets:pull");
   }

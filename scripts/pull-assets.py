@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 import sys
@@ -12,15 +13,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def auth_header() -> dict[str, str]:
+    user = os.environ.get("DASHBOARD_USER", "umbra")
+    password = os.environ.get("DASHBOARD_PASSWORD", "")
+    if not password:
+        return {}
+    token = base64.b64encode(f"{user}:{password}".encode()).decode("ascii")
+    return {"Authorization": f"Basic {token}"}
+
+
 def fetch_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"Accept": "application/json"})
+    headers = {"Accept": "application/json", **auth_header()}
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=120) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
 def download(url: str, dest: Path) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
-    req = urllib.request.Request(url)
+    req = urllib.request.Request(url, headers=auth_header())
     with urllib.request.urlopen(req, timeout=120) as resp:
         dest.write_bytes(resp.read())
 
@@ -28,8 +39,8 @@ def download(url: str, dest: Path) -> None:
 def main() -> None:
     base = (sys.argv[1] if len(sys.argv) > 1 else os.environ.get("KIT_URL", "")).rstrip("/")
     if not base:
-        print("Usage: python scripts/pull-assets.py https://your-app.up.railway.app")
-        print("   or: KIT_URL=https://... npm run assets:pull")
+        print("Usage: python3 scripts/pull-assets.py https://your-app.up.railway.app")
+        print("   or: KIT_URL=https://... DASHBOARD_PASSWORD=... npm run assets:pull")
         sys.exit(1)
 
     manifest_url = f"{base}/api/assets-manifest"

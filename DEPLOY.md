@@ -35,8 +35,19 @@ Der Container baut beim ersten Deploy alle Creatives (`npm run build:all` inkl. 
 | `X_OAUTH2_REFRESH_TOKEN` | empfohlen | Token-Refresh |
 | `X_CLIENT_ID` / `X_CLIENT_SECRET` | empfohlen | OAuth2 App |
 | `X_API_KEY` … | optional | OAuth1 Fallback für Media-Upload |
+| `DASHBOARD_PASSWORD` | **empfohlen** | Login für umbra / zero / shade (Standard: `nb-umbra-zero-shade`) |
+| `DASHBOARD_SESSION_SECRET` | optional | Cookie-Signatur (zufälliger String) |
+| `DASHBOARD_AUTH_DISABLED` | optional | `1` = Login aus (nur lokal) |
 
 Kopiere Werte aus `.env.local` (lokal) — **nie** committen.
+
+### Dashboard-Login
+
+- **Benutzer:** `umbra`, `zero`, `shade` (Dropdown auf `/login`)
+- **Passwort:** `DASHBOARD_PASSWORD` in Railway setzen — sonst Default `nb-umbra-zero-shade`
+- **Abmelden:** Link oben rechts im Dashboard
+- **`/health`** bleibt ohne Login (Railway Healthcheck)
+- **`assets:pull`:** `DASHBOARD_USER=umbra` + `DASHBOARD_PASSWORD=...` mitsenden
 
 ### Schnellerer Build (ohne PNG-Export im Image)
 
@@ -61,6 +72,7 @@ Nach dem Cloud-Deploy:
 ```bash
 # Windows PowerShell
 $env:KIT_URL="https://deine-app.up.railway.app"
+$env:DASHBOARD_PASSWORD="dein-passwort"
 npm run assets:pull
 
 # oder direkt
