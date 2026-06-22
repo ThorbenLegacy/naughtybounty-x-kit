@@ -228,11 +228,12 @@ export async function fetchAnalytics(): Promise<AnalyticsData> {
     "Posts werden per bot/state.json (tweetId) oder Text-Match verknüpft.",
   ];
 
-  let client: Awaited<ReturnType<typeof createXClientFresh>> = null;
-  try {
-    client = await createXClientFresh();
-  } catch (e) {
-    errors.push(`X-Auth: ${formatApiError(e)}`);
+  let client: TwitterApi | null = null;
+  const authResult = await createXClientFresh();
+  client = authResult.client;
+  if (authResult.authErrors.length) errors.push(...authResult.authErrors);
+  if (authResult.authMethod) {
+    notes.push(`Authentifiziert via ${authResult.authMethod === "oauth2" ? "OAuth2" : "OAuth1"}.`);
   }
 
   if (!client) {
@@ -251,10 +252,11 @@ export async function fetchAnalytics(): Promise<AnalyticsData> {
         avgEngagementRate: null,
       },
       tweets: [],
-      errors: [
-        ...errors,
-        "Kein X-Client — X_OAUTH2_ACCESS_TOKEN, X_OAUTH2_REFRESH_TOKEN, X_CLIENT_ID, X_CLIENT_SECRET in Railway Variables setzen.",
-      ],
+      errors: errors.length
+        ? errors
+        : [
+            "Kein gültiger X-Client — OAuth2 oder OAuth1 Credentials in Railway Variables prüfen.",
+          ],
       notes,
     };
   }

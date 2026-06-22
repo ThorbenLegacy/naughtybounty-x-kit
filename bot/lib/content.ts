@@ -147,8 +147,79 @@ export function validateCreativeImage(imagePath: string): void {
 }
 
 function env(name: string): string | undefined {
-  const value = process.env[name]?.trim();
+  let value = process.env[name]?.trim();
+  if (!value) return undefined;
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    value = value.slice(1, -1).trim();
+  }
   return value || undefined;
+}
+
+function formatApiError(error: unknown): string {
+  if (error instanceof ApiResponseError) {
+    return `${error.code} ${JSON.stringify(error.errors ?? error.data ?? "")}`;
+  }
+  return String(error);
+}
+
+async function verifyXClient(client: TwitterApi): Promise<void> {
+  await client.v2.me({ "user.fields": ["username"] });
+}
+
+export type XClientResult = {
+  client: TwitterApi | null;
+  authMethod: "oauth2" | "oauth1" | null;
+  authErrors: string[];
+};
+
+/** OAuth2 testen/refreshen, bei Fehler OAuth1 — wichtig für Railway. */
+export async function createXClientFresh(): Promise<XClientResult> {
+  const authErrors: string[] = [];
+
+  const oauth2Token = env("X_OAUTH2_ACCESS_TOKEN");
+  if (oauth2Token) {
+    const direct = new TwitterApi(oauth2Token);
+    try {
+      await verifyXClient(direct);
+      return { client: direct, authMethod: "oauth2", authErrors: [] };
+    } catch (e) {
+      authErrors.push(`OAuth2 Access: ${formatApiError(e)}`);
+    }
+
+    const clientId = env("X_CLIENT_ID");
+    const clientSecret = env("X_CLIENT_SECRET");
+    const refreshToken = env("X_OAUTH2_REFRESH_TOKEN");
+    if (clientId && clientSecret && refreshToken) {
+      try {
+        const app = new TwitterApi({ clientId, clientSecret });
+        const result = await app.refreshOAuth2Token(refreshToken);
+        process.env.X_OAUTH2_ACCESS_TOKEN = result.accessToken;
+        if (result.refreshToken) process.env.X_OAUTH2_REFRESH_TOKEN = result.refreshToken;
+        await verifyXClient(result.client);
+        return { client: result.client, authMethod: "oauth2", authErrors: [] };
+      } catch (e) {
+        authErrors.push(`OAuth2 Refresh: ${formatApiError(e)}`);
+        authErrors.push(
+          "Hinweis: X_CLIENT_ID/SECRET = OAuth-2.0-Client aus Developer Portal (User Auth Settings), nicht API Key/Secret.",
+        );
+      }
+    }
+  }
+
+  const oauth1 = createOAuth1Client();
+  if (oauth1) {
+    try {
+      await verifyXClient(oauth1);
+      return { client: oauth1, authMethod: "oauth1", authErrors: [] };
+    } catch (e) {
+      authErrors.push(`OAuth1: ${formatApiError(e)}`);
+    }
+  }
+
+  return { client: null, authMethod: null, authErrors };
 }
 
 export function authMode(): "oauth2" | "oauth1" | null {
@@ -177,38 +248,6 @@ export function createXClient(): TwitterApi | null {
   const oauth2 = env("X_OAUTH2_ACCESS_TOKEN");
   if (oauth2) return new TwitterApi(oauth2);
   return createOAuth1Client();
-}
-
-/** OAuth2-Token bei 401 per Refresh erneuern (Railway: nur process.env, kein .env.local). */
-export async function createXClientFresh(): Promise<TwitterApi | null> {
-  let client = createXClient();
-  if (!client) return null;
-
-  const verify = async (c: TwitterApi) => {
-    await c.v2.me({ "user.fields": ["username"] });
-  };
-
-  try {
-    await verify(client);
-    return client;
-  } catch (e) {
-    const unauthorized =
-      e instanceof ApiResponseError && (e.code === 401 || e.code === 403);
-    if (!unauthorized) throw e;
-  }
-
-  const clientId = env("X_CLIENT_ID");
-  const clientSecret = env("X_CLIENT_SECRET");
-  const refreshToken = env("X_OAUTH2_REFRESH_TOKEN");
-  if (!clientId || !clientSecret || !refreshToken) return client;
-
-  const app = new TwitterApi({ clientId, clientSecret });
-  const result = await app.refreshOAuth2Token(refreshToken);
-  process.env.X_OAUTH2_ACCESS_TOKEN = result.accessToken;
-  if (result.refreshToken) process.env.X_OAUTH2_REFRESH_TOKEN = result.refreshToken;
-  client = result.client;
-  await verify(client);
-  return client;
 }
 
 export function xCredentialsHint(): string {
