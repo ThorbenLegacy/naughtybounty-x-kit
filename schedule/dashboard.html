@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NaughtyBounty X — Command Board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #18181b;
+      --muted: #71717a;
+      --muted-light: #a1a1aa;
+      --primary: #7511bd;
+      --primary-light: #a78bfa;
+      --card: #ffffff;
+      --card-muted: #f4f4f5;
+      --border: #e4e4e7;
+      --ok: #16a34a;
+      --warn: #d97706;
+      --err: #dc2626;
+      --shadow: 0 1px 3px rgba(24, 24, 27, 0.06), 0 8px 24px rgba(117, 17, 189, 0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: Figtree, ui-sans-serif, system-ui, sans-serif;
+      font-feature-settings: "ss01", "ss02";
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: var(--fg);
+      font-size: 0.9375rem;
+      line-height: 1.625;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 85% 55% at 100% 0%, rgba(117, 17, 189, 0.07) 0%, transparent 58%),
+        radial-gradient(ellipse 70% 50% at 0% 100%, rgba(167, 139, 250, 0.09) 0%, transparent 52%),
+        var(--bg);
+    }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 24px 20px 56px; }
+
+    /* Header — for-creators light */
+    .topbar {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand img {
+      width: 48px; height: 48px; object-fit: contain;
+      filter: drop-shadow(0 4px 14px rgba(117, 17, 189, 0.15));
+    }
+    .kicker {
+      font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--primary);
+    }
+    h1 {
+      font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 900;
+      letter-spacing: -0.025em; line-height: 0.95; margin-top: 6px;
+    }
+    h1 .accent {
+      display: inline-block; padding: 2px 10px; margin: 0 2px;
+      border-radius: 14px; background: var(--primary); color: #fff;
+      box-shadow: 0 4px 16px rgba(117, 17, 189, 0.22);
+    }
+    .sub {
+      color: var(--muted); font-size: 1rem; margin-top: 8px;
+      font-weight: 500; line-height: 1.625; max-width: 36rem;
+    }
+    .top-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .pill {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--card); white-space: nowrap;
+    }
+    .pill.live { color: var(--ok); border-color: rgba(22, 163, 74, 0.35); background: rgba(22, 163, 74, 0.06); }
+    .btn {
+      font-family: inherit; font-weight: 600; font-size: 0.875rem;
+      letter-spacing: -0.01em;
+      padding: 10px 18px; border-radius: 999px; border: none; cursor: pointer;
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+      color: #fff; box-shadow: 0 3px 14px rgba(117, 17, 189, 0.22);
+    }
+    .btn:disabled { opacity: 0.55; cursor: wait; }
+    .btn.secondary {
+      background: var(--card); color: var(--fg);
+      border: 1px solid var(--border); box-shadow: none;
+    }
+    .status { font-size: 0.78rem; color: var(--muted); }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+
+    /* Sticky section nav */
+    .nav {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(10px);
+      padding: 10px 0; margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav a {
+      color: var(--muted); text-decoration: none; font-size: 0.875rem; font-weight: 700;
+      letter-spacing: -0.01em;
+      padding: 8px 16px; border-radius: 999px; border: 1px solid transparent;
+    }
+    .nav a:hover { color: var(--fg); background: var(--card-muted); }
+    .nav a.active { color: var(--primary); border-color: rgba(117, 17, 189, 0.25); background: rgba(117, 17, 189, 0.06); }
+
+    /* Cards */
+    .section { margin-bottom: 28px; scroll-margin-top: 64px; }
+    .section-title {
+      font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--primary); margin-bottom: 14px;
+    }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .grid-kpi { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+    @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 24px; padding: 20px 22px; box-shadow: var(--shadow);
+    }
+    .card-muted { background: var(--card-muted); box-shadow: none; }
+    .card-label {
+      font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.18em; color: var(--muted-light);
+    }
+    .card h3 { font-size: 0.95rem; font-weight: 800; margin-top: 8px; letter-spacing: -0.02em; }
+
+    .countdown {
+      font-size: clamp(2.25rem, 5vw, 3rem); font-weight: 900; letter-spacing: -0.04em;
+      line-height: 0.95; color: var(--primary); font-variant-numeric: tabular-nums;
+    }
+    .countdown-sub { color: var(--muted); font-size: 0.9375rem; margin-top: 8px; font-weight: 500; line-height: 1.625; }
+    .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .meta-box {
+      background: var(--card-muted); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 12px;
+    }
+    .meta-k { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted-light); font-weight: 700; }
+    .meta-v { font-size: 1.0625rem; font-weight: 800; margin-top: 4px; letter-spacing: -0.02em; }
+
+    .slots { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+    .slot {
+      padding: 5px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 700;
+      border: 1px solid var(--border); color: var(--muted); background: var(--card);
+    }
+    .slot.done { opacity: 0.45; text-decoration: line-through; }
+    .slot.next {
+      color: var(--primary); border-color: rgba(117, 17, 189, 0.35);
+      background: rgba(117, 17, 189, 0.07);
+    }
+
+    .tweet {
+      white-space: pre-wrap; font-size: 0.875rem; line-height: 1.625;
+      color: var(--fg); max-height: 160px; overflow: auto; margin-top: 10px;
+      padding: 14px; background: var(--card-muted); border: 1px solid var(--border);
+      border-radius: 16px; font-weight: 500;
+    }
+    .row { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+    .id { font-size: 0.75rem; color: var(--muted); font-family: ui-monospace, monospace; }
+    .warn { color: var(--warn); font-size: 0.8rem; margin-top: 10px; font-weight: 600; }
+
+    .kpi {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 14px 16px;
+    }
+    .kpi-k { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted); font-weight: 700; }
+    .kpi-v { font-size: clamp(1.25rem, 2.5vw, 1.75rem); font-weight: 900; margin-top: 6px; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; line-height: 0.95; color: var(--primary); }
+
+    .panel {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 24px; padding: 20px 22px; box-shadow: var(--shadow);
+    }
+    .panel-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
+    }
+    .panel-head h2 {
+      font-size: clamp(1.25rem, 2.5vw, 1.75rem); font-weight: 900;
+      letter-spacing: -0.025em; line-height: 1.05;
+    }
+    .count { color: var(--muted); font-size: 0.875rem; font-weight: 600; }
+    .filter {
+      font-family: inherit; padding: 10px 14px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--card-muted);
+      color: var(--fg); font-size: 0.875rem; min-width: 220px; font-weight: 500;
+    }
+    .filter:focus { outline: 2px solid rgba(117, 17, 189, 0.25); border-color: var(--primary-light); }
+
+    .table-wrap {
+      overflow: auto; max-height: 420px; border-radius: 16px;
+      border: 1px solid var(--border); margin-top: 12px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+    th, td {
+      padding: 10px 12px; text-align: left;
+      border-bottom: 1px solid var(--border); vertical-align: top;
+    }
+    th {
+      position: sticky; top: 0; background: var(--card-muted); z-index: 1;
+      font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.18em;
+      color: var(--muted); font-weight: 700; white-space: nowrap;
+      user-select: none;
+    }
+    th.sortable { cursor: pointer; transition: color 0.15s; }
+    th.sortable:hover { color: var(--primary); }
+    th.sorted { color: var(--primary); background: rgba(117, 17, 189, 0.06); }
+    th .sort-icon { margin-left: 4px; opacity: 0.85; font-size: 0.75rem; letter-spacing: 0; }
+    td { font-weight: 500; line-height: 1.5; color: var(--fg); }
+    td.num { font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: -0.02em; }
+    tr:hover td { background: rgba(117, 17, 189, 0.03); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.75rem; font-weight: 600; }
+    .truncate { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tag {
+      display: inline-block; padding: 3px 9px; border-radius: 999px;
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.02em;
+      background: var(--card-muted); border: 1px solid var(--border); color: var(--muted);
+    }
+    .tag.creators { color: var(--primary); border-color: rgba(117, 17, 189, 0.25); background: rgba(117, 17, 189, 0.06); }
+    .tag.users { color: #0d9488; border-color: rgba(13, 148, 136, 0.25); background: rgba(13, 148, 136, 0.06); }
+    .tag.posted { color: var(--ok); border-color: rgba(22, 163, 74, 0.25); background: rgba(22, 163, 74, 0.06); }
+    .tag.planned { color: var(--warn); border-color: rgba(217, 119, 6, 0.25); background: rgba(217, 119, 6, 0.06); }
+    a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+    .notes { font-size: 0.76rem; color: var(--muted); line-height: 1.55; margin-top: 10px; }
+    .empty { color: var(--muted); padding: 24px; text-align: center; }
+    .tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+    .tab {
+      padding: 6px 14px; border-radius: 999px; font-size: 0.8125rem; font-weight: 700;
+      letter-spacing: -0.01em;
+      border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor: pointer;
+    }
+    .tab.active { color: var(--primary); border-color: rgba(117, 17, 189, 0.35); background: rgba(117, 17, 189, 0.07); }
+    .footer { text-align: center; color: var(--muted-light); font-size: 0.72rem; margin-top: 32px; font-weight: 500; }
+
+    /* Creative previews */
+    .thumb-btn {
+      display: block; padding: 0; border: 1px solid var(--border);
+      border-radius: 10px; background: var(--card-muted); cursor: pointer;
+      overflow: hidden; line-height: 0; transition: box-shadow 0.15s, transform 0.15s;
+    }
+    .thumb-btn.thumb-light {
+      background: #1e1e2c;
+      border-color: #3c3c58;
+    }
+    .thumb-btn.thumb-error {
+      min-width: 88px; min-height: 50px;
+      background: #fef2f2; border-color: #fecaca;
+    }
+    .thumb-btn.thumb-error::after {
+      content: "Bild fehlt";
+      display: block; padding: 16px 8px; font-size: 10px; font-weight: 700;
+      color: var(--err); text-align: center; line-height: 1.3;
+    }
+    .thumb-btn:hover {
+      box-shadow: 0 4px 16px rgba(117, 17, 189, 0.18);
+      transform: scale(1.04);
+    }
+    .thumb {
+      display: block; width: 88px; height: 50px; object-fit: cover;
+      background: var(--card-muted);
+    }
+    .preview-block { margin-top: 12px; }
+    .thumb-btn.wide .thumb {
+      width: 100%; height: auto; aspect-ratio: 16/9; max-height: 140px;
+    }
+
+    .lightbox {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .lightbox[hidden] { display: none !important; }
+    .lightbox-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(24, 24, 27, 0.72);
+      backdrop-filter: blur(6px);
+    }
+    .lightbox-panel {
+      position: relative; z-index: 1; max-width: min(960px, 96vw);
+      background: var(--card); border-radius: 24px; border: 1px solid var(--border);
+      box-shadow: 0 24px 64px rgba(117, 17, 189, 0.2);
+      overflow: hidden; margin: 0;
+    }
+    .lightbox-panel img {
+      display: block; width: 100%; height: auto; max-height: 80vh; object-fit: contain;
+      background: #fafafa;
+    }
+    .lightbox-panel figcaption {
+      padding: 14px 18px; font-size: 0.875rem; font-weight: 600;
+      color: var(--muted); border-top: 1px solid var(--border);
+    }
+    .lightbox-close {
+      position: absolute; top: 12px; right: 12px; z-index: 2;
+      width: 36px; height: 36px; border-radius: 999px; border: none;
+      background: rgba(255,255,255,0.92); color: var(--fg);
+      font-size: 1.4rem; line-height: 1; cursor: pointer; font-weight: 400;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    }
+    .lightbox-close:hover { background: #fff; color: var(--primary); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <img src="/assets/logo_small_light.svg" alt="NaughtyBounty" width="48" height="48" />
+        <div>
+          <div class="kicker">X Marketing · Command Board</div>
+          <h1>Scheduler &amp; <span class="accent">Analyse</span></h1>
+          <p class="sub" id="subtitle">@LucaBrandblue · NaughtyBounty</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="pill live" id="live-pill">Live</span>
+        <button class="btn" id="refreshBtn">↻ KPIs aktualisieren</button>
+        <button class="btn secondary" id="rebuildBtn">Metadaten</button>
+        <span class="status" id="actionStatus"></span>
+      </div>
+    </header>
+
+    <nav class="nav" id="sectionNav">
+      <a href="#scheduler" class="active">Scheduler</a>
+      <a href="#kpis">KPIs</a>
+      <a href="#performance">Performance</a>
+      <a href="#posts">Posts</a>
+      <a href="#creatives">Creatives</a>
+    </nav>
+
+    <!-- SCHEDULER -->
+    <section class="section" id="scheduler">
+      <div class="section-title">Scheduler</div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-label">Countdown</div>
+          <div class="countdown" id="countdown">--:--:--</div>
+          <p class="countdown-sub" id="countdown-label">Nächster Post …</p>
+          <div class="meta-row">
+            <div class="meta-box">
+              <div class="meta-k">Jetzt (Berlin)</div>
+              <div class="meta-v" id="now-clock">—</div>
+            </div>
+            <div class="meta-box">
+              <div class="meta-k">Heute</div>
+              <div class="meta-v" id="today-count">—</div>
+            </div>
+          </div>
+          <div class="slots" id="slots"></div>
+          <p class="warn" id="warn" hidden></p>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <div class="card-label">Nächster Post</div>
+            <span class="id" id="next-id"></span>
+          </div>
+          <p class="sub" id="next-index" style="margin-top:6px"></p>
+          <div class="preview-block" id="next-preview" hidden></div>
+          <div class="tweet" id="next-text"></div>
+        </div>
+
+        <div class="card card-muted">
+          <div class="card-label">Letzter Post</div>
+          <p class="sub" id="last-meta" style="margin-top:8px">—</p>
+          <p class="notes" style="margin-top:16px">Scheduler: <code>npm run x:schedule</code><br>Aktualisierung alle 5s</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section class="section" id="kpis">
+      <div class="section-title">Account KPIs</div>
+      <div class="grid-kpi" id="kpiGrid"></div>
+    </section>
+
+    <!-- PERFORMANCE -->
+    <section class="section" id="performance">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Post-Performance (X API)</h2>
+          <span class="count" id="tweetCount"></span>
+        </div>
+        <input class="filter" id="tweetFilter" placeholder="Tweets filtern …" />
+        <div class="table-wrap">
+          <table id="tweetTable"><thead><tr></tr></thead><tbody></tbody></table>
+        </div>
+        <p class="notes" id="analyticsNotes"></p>
+      </div>
+    </section>
+
+    <!-- POSTS -->
+    <section class="section" id="posts">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Geplante &amp; gepostete Posts</h2>
+          <span class="count" id="postCount"></span>
+        </div>
+        <div class="tabs" id="postTabs"></div>
+        <input class="filter" id="postFilter" placeholder="Posts filtern …" />
+        <div class="table-wrap">
+          <table id="postTable"><thead><tr></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- CREATIVES -->
+    <section class="section" id="creatives">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Creative-Inventar</h2>
+          <span class="count" id="creativeCount"></span>
+        </div>
+        <input class="filter" id="creativeFilter" placeholder="Creatives filtern …" />
+        <div class="table-wrap">
+          <table id="creativeTable"><thead><tr></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer">NaughtyBounty X-Kit · Light Board · for-creators Design</p>
+  </div>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <div class="lightbox-backdrop" data-close-lightbox></div>
+    <figure class="lightbox-panel">
+      <button type="button" class="lightbox-close" data-close-lightbox aria-label="Schließen">×</button>
+      <img id="lightbox-img" src="" alt="Creative Preview" />
+      <figcaption id="lightbox-cap"></figcaption>
+    </figure>
+  </div>
+
+  <script>
+    /* ── Scheduler ── */
+    let targetAt = Date.now();
+    let targetLabel = "";
+
+    function pad(n) { return String(n).padStart(2, "0"); }
+    function formatCountdown(ms) {
+      if (ms <= 0) return "00:00:00";
+      const s = Math.floor(ms / 1000);
+      return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+    }
+    function tickCountdown() {
+      const ms = Math.max(0, targetAt - Date.now());
+      document.getElementById("countdown").textContent = formatCountdown(ms);
+      document.getElementById("countdown-label").textContent =
+        ms <= 0 ? "Slot aktiv — Post sollte gleich starten …" : `Nächster Slot: ${targetLabel}`;
+    }
+    function renderSlots(slots, posted, nextSlot) {
+      const el = document.getElementById("slots");
+      el.innerHTML = "";
+      for (const s of slots) {
+        const span = document.createElement("span");
+        span.className = "slot";
+        span.textContent = s;
+        if (posted.includes(s)) span.classList.add("done");
+        if (s === nextSlot) span.classList.add("next");
+        el.appendChild(span);
+      }
+    }
+    async function refreshScheduler() {
+      try {
+        const res = await fetch("/api/status");
+        const data = await res.json();
+        document.getElementById("live-pill").className = "pill live";
+        document.getElementById("live-pill").textContent = "Live";
+        document.getElementById("now-clock").textContent = data.now.label;
+        document.getElementById("today-count").textContent =
+          `${data.today.postsToday}/${data.schedule.postsPerDay} · ${data.today.remaining} übrig`;
+        targetAt = data.nextSlot.at;
+        targetLabel = `${data.nextSlot.date} ${data.nextSlot.slot}`;
+        renderSlots(data.schedule.slots, data.today.postedSlots, data.nextSlot.slot);
+        const warn = document.getElementById("warn");
+        if (data.today.limitReached) {
+          warn.hidden = false;
+          warn.textContent = "Tageslimit erreicht — nächster Slot erst morgen.";
+        } else if (data.nextSlot.skippedPast) {
+          warn.hidden = false;
+          warn.textContent = "Verpasste Slots werden nicht nachgeholt.";
+        } else { warn.hidden = true; }
+        document.getElementById("next-id").textContent = data.nextPost.id;
+        document.getElementById("next-index").textContent =
+          `Post ${data.nextPost.index}/${data.nextPost.total} · ${data.postsSource}`;
+        const previewEl = document.getElementById("next-preview");
+        if (data.nextPost.image) {
+          previewEl.hidden = false;
+          previewEl.innerHTML = previewButton({ image: data.nextPost.image, header: data.nextPost.id }, true);
+        } else {
+          previewEl.hidden = true;
+          previewEl.innerHTML = "";
+        }
+        document.getElementById("next-text").textContent = data.nextPost.text;
+        const last = data.lastPost;
+        const lastEl = document.getElementById("last-meta");
+        if (!last) lastEl.textContent = "Noch keiner";
+        else lastEl.innerHTML = last.url
+          ? `<a href="${last.url}" target="_blank" rel="noopener">${last.postId}</a> · ${last.date} ${last.slot || ""}`
+          : `${last.postId} · ${last.date}`;
+      } catch {
+        document.getElementById("live-pill").className = "pill";
+        document.getElementById("live-pill").textContent = "Offline";
+      }
+    }
+
+    /* ── Analytics ── */
+    const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("de-DE"));
+    const pct = (n) => (n == null ? "—" : `${n}%`);
+    const dt = (s) => (s ? new Date(s).toLocaleString("de-DE") : "—");
+    let catalog = null, analytics = null, postTab = "all";
+
+    function isLightImage(row, src) {
+      return row.colorScheme === "light"
+        || String(row.image || "").includes("exports-light")
+        || String(src || "").includes("/exports-light/");
+    }
+
+    function imageSrc(row) {
+      const field = row.colorScheme === "light" && row.imageLight
+        ? row.imageLight
+        : row.image;
+      if (field) {
+        const p = String(field).replace(/\\/g, "/");
+        return p.startsWith("/") ? p : `/${p}`;
+      }
+      if (row.creativePath) {
+        const prefix = row.colorScheme === "light" ? "exports-light" : "exports";
+        return `/${prefix}/${String(row.creativePath).replace(/\\/g, "/")}.png`;
+      }
+      return null;
+    }
+
+    function escAttr(s) {
+      return String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+
+    function previewButton(row, wide = false) {
+      const src = imageSrc(row);
+      if (!src) return "—";
+      const cap = row.header || row.linkedPostId || row.id || "Creative";
+      const light = isLightImage(row, src);
+      const cls = [wide ? "thumb-btn wide" : "thumb-btn", light ? "thumb-light" : ""].filter(Boolean).join(" ");
+      return `<button type="button" class="${cls}" data-lightbox="${escAttr(src)}" data-caption="${escAttr(cap)}">
+        <img class="thumb" src="${escAttr(src)}" alt="" loading="lazy"
+             onerror="this.hidden=true;this.parentElement.classList.add('thumb-error')" />
+      </button>`;
+    }
+
+    function openLightbox(src, caption) {
+      const box = document.getElementById("lightbox");
+      document.getElementById("lightbox-img").src = src;
+      document.getElementById("lightbox-cap").textContent = caption || "";
+      box.hidden = false;
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeLightbox() {
+      document.getElementById("lightbox").hidden = true;
+      document.getElementById("lightbox-img").src = "";
+      document.body.style.overflow = "";
+    }
+
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-lightbox]");
+      if (btn) {
+        e.preventDefault();
+        openLightbox(btn.dataset.lightbox, btn.dataset.caption);
+        return;
+      }
+      if (e.target.closest("[data-close-lightbox]")) closeLightbox();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeLightbox();
+    });
+
+    const previewCol = {
+      key: "preview",
+      label: "Bild",
+      sortable: false,
+      html: (r) => previewButton(r),
+    };
+
+    const sortState = {
+      tweetTable: { key: "impressions", dir: "desc" },
+      postTable: { key: "scheduledDate", dir: "asc" },
+      creativeTable: { key: "type", dir: "asc" },
+    };
+
+    const tweetCols = [
+      { key: "createdAt", label: "Datum", fmt: dt, sortType: "date" },
+      previewCol,
+      { key: "linkedPostId", label: "Post-ID", cls: "mono truncate", sortType: "string" },
+      { key: "creativePath", label: "Creative", cls: "mono truncate", sortType: "string" },
+      { key: "text", label: "Text", cls: "truncate", sortType: "string", raw: (r) => r.text?.slice(0, 80) },
+      { key: "impressions", label: "Impr.", fmt: fmt, sortType: "number", num: true, raw: (r) => r.organicMetrics?.impressionCount ?? r.nonPublicMetrics?.impressionCount ?? r.publicMetrics?.impressionCount ?? 0 },
+      { key: "likes", label: "Likes", fmt: fmt, sortType: "number", num: true, raw: (r) => r.publicMetrics?.likeCount ?? 0 },
+      { key: "retweets", label: "RT", fmt: fmt, sortType: "number", num: true, raw: (r) => r.publicMetrics?.retweetCount ?? 0 },
+      { key: "replies", label: "Replies", fmt: fmt, sortType: "number", num: true, raw: (r) => r.publicMetrics?.replyCount ?? 0 },
+      { key: "quotes", label: "Quotes", fmt: fmt, sortType: "number", num: true, raw: (r) => r.publicMetrics?.quoteCount ?? 0 },
+      { key: "bookmarks", label: "BM", fmt: fmt, sortType: "number", num: true, raw: (r) => r.publicMetrics?.bookmarkCount ?? 0 },
+      { key: "clicks", label: "Klicks", fmt: fmt, sortType: "number", num: true, raw: (r) => r.organicMetrics?.urlLinkClicks ?? r.nonPublicMetrics?.urlLinkClicks ?? 0 },
+      { key: "profileClicks", label: "Profil", fmt: fmt, sortType: "number", num: true, raw: (r) => r.organicMetrics?.userProfileClicks ?? r.nonPublicMetrics?.userProfileClicks ?? 0 },
+      { key: "engagementRate", label: "ER%", fmt: pct, sortType: "number", num: true },
+      { key: "hasMedia", label: "Media", fmt: (v) => v ? "✓" : "—", sortType: "boolean" },
+      { key: "tweetId", label: "↗", sortType: "string", raw: (r) => r.tweetId, html: (r) => `<a href="${r.url}" target="_blank" rel="noopener">↗</a>` },
+    ];
+    const postCols = [
+      { key: "id", label: "ID", cls: "mono", sortType: "string" },
+      previewCol,
+      { key: "source", label: "Quelle", cls: "mono", sortType: "string" },
+      { key: "status", label: "Status", tag: true, sortType: "string" },
+      { key: "audience", label: "Audience", tag: true, sortType: "string" },
+      { key: "theme", label: "Theme", sortType: "string" },
+      { key: "colorScheme", label: "Look", tag: true, sortType: "string" },
+      { key: "scheduledDate", label: "Datum", sortType: "date" },
+      { key: "scheduledTime", label: "Slot", sortType: "string" },
+      { key: "creativePath", label: "Creative", cls: "mono truncate", sortType: "string" },
+      { key: "header", label: "Header", cls: "truncate", sortType: "string" },
+      { key: "hashtags", label: "Hashtags", sortType: "string", raw: (r) => (r.hashtags || []).join(" ") },
+      { key: "ctaUrl", label: "CTA URL", cls: "truncate", sortType: "string" },
+      { key: "charCount", label: "Zeichen", fmt: fmt, sortType: "number", num: true },
+      { key: "tweetId", label: "Tweet-ID", cls: "mono", sortType: "string" },
+    ];
+    const creativeCols = [
+      { key: "id", label: "ID", cls: "mono", sortType: "string" },
+      previewCol,
+      { key: "type", label: "Type", sortType: "string" },
+      { key: "subtype", label: "Subtype", sortType: "string" },
+      { key: "audience", label: "Audience", tag: true, sortType: "string" },
+      { key: "theme", label: "Theme", sortType: "string" },
+      { key: "colorSchemes", label: "Looks", sortType: "string", raw: (r) => (r.colorSchemes || ["dark"]).join(" · ") },
+      { key: "header", label: "Header", cls: "truncate", sortType: "string" },
+      { key: "headerAccent", label: "Accent", sortType: "string" },
+      { key: "description", label: "Description", cls: "truncate", sortType: "string" },
+      { key: "keywords", label: "Keywords", sortType: "string", raw: (r) => (r.keywords || []).slice(0, 6).join(", ") },
+      { key: "cta", label: "CTA", sortType: "string" },
+      { key: "ctaUrl", label: "CTA URL", cls: "truncate", sortType: "string" },
+      { key: "badge", label: "Badge", sortType: "string" },
+      { key: "kicker", label: "Kicker", cls: "truncate", sortType: "string" },
+      { key: "bullets", label: "Bullets", sortType: "string", raw: (r) => (r.bullets || []).join(" · ") },
+      { key: "trustLine", label: "Trust", cls: "truncate", sortType: "string" },
+    ];
+
+    function cellValue(row, col) {
+      if (col.raw) return col.raw(row);
+      return row[col.key];
+    }
+
+    function sortRows(rows, cols, state) {
+      const col = cols.find((c) => c.key === state.key);
+      if (!col || col.sortable === false) return rows;
+      const type = col.sortType || "string";
+      const mult = state.dir === "asc" ? 1 : -1;
+      return [...rows].sort((a, b) => {
+        let va = cellValue(a, col);
+        let vb = cellValue(b, col);
+        if (va == null && vb == null) return 0;
+        if (va == null || va === "") return 1;
+        if (vb == null || vb === "") return -1;
+        if (type === "number") return (Number(va) - Number(vb)) * mult;
+        if (type === "date") return (new Date(va).getTime() - new Date(vb).getTime()) * mult;
+        if (type === "boolean") return ((va ? 1 : 0) - (vb ? 1 : 0)) * mult;
+        return String(va).localeCompare(String(vb), "de", { sensitivity: "base" }) * mult;
+      });
+    }
+
+    function sortIcon(state, key) {
+      if (state.key !== key) return '<span class="sort-icon">↕</span>';
+      return `<span class="sort-icon">${state.dir === "asc" ? "↑" : "↓"}</span>`;
+    }
+
+    function onSort(tableId, key, rerender) {
+      const state = sortState[tableId];
+      if (state.key === key) state.dir = state.dir === "asc" ? "desc" : "asc";
+      else { state.key = key; state.dir = "asc"; }
+      rerender();
+    }
+
+    function buildTable(tableId, cols, rows, filterVal, rerender) {
+      const table = document.getElementById(tableId);
+      const thead = table.querySelector("thead tr");
+      const tbody = table.querySelector("tbody");
+      const state = sortState[tableId];
+      const q = (filterVal || "").toLowerCase();
+      let filtered = rows.filter((r) => !q || JSON.stringify(r).toLowerCase().includes(q));
+      filtered = sortRows(filtered, cols, state);
+
+      thead.innerHTML = cols.map((c) => {
+        const sortable = c.sortable !== false;
+        const cls = [sortable ? "sortable" : "", state.key === c.key ? "sorted" : ""].filter(Boolean).join(" ");
+        const icon = sortable ? sortIcon(state, c.key) : "";
+        return `<th class="${cls}" data-key="${c.key}">${c.label}${icon}</th>`;
+      }).join("");
+
+      thead.querySelectorAll("th.sortable").forEach((th) => {
+        th.onclick = () => onSort(tableId, th.dataset.key, rerender);
+      });
+
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="${cols.length}" class="empty">Keine Einträge</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = filtered.map((row) =>
+        `<tr>${cols.map((c) => {
+          const val = cellValue(row, c);
+          if (c.html) return `<td>${c.html(row)}</td>`;
+          if (c.tag && val) return `<td><span class="tag ${val}">${val}</span></td>`;
+          const extra = [c.cls, c.num ? "num" : ""].filter(Boolean).join(" ");
+          return `<td class="${extra}">${c.fmt ? c.fmt(val) : (val ?? "—")}</td>`;
+        }).join("")}</tr>`
+      ).join("");
+    }
+
+    function renderKpis() {
+      const acc = analytics?.account;
+      const t = analytics?.totals ?? {};
+      const sum = catalog?.summary ?? {};
+      document.getElementById("subtitle").textContent = acc
+        ? `@${acc.username} · ${acc.followersCount.toLocaleString("de-DE")} Follower · ${dt(analytics?.fetchedAt)}`
+        : "@LucaBrandblue · KPIs noch nicht abgerufen";
+      document.getElementById("kpiGrid").innerHTML = [
+        ["Follower", acc?.followersCount], ["Tweets", t.tweetsFetched], ["Verknüpft", t.linkedPosts],
+        ["Impressionen", t.totalImpressions], ["Likes", t.totalLikes], ["Retweets", t.totalRetweets],
+        ["Replies", t.totalReplies], ["Ø ER", t.avgEngagementRate != null ? `${t.avgEngagementRate}%` : null],
+        ["Creatives", sum.creativeCount], ["Posts", sum.postCount],
+      ].map(([k, v]) => `<div class="kpi"><div class="kpi-k">${k}</div><div class="kpi-v">${fmt(v)}</div></div>`).join("");
+    }
+    function renderPosts() {
+      let rows = catalog?.posts ?? [];
+      if (postTab === "week") rows = rows.filter((p) => p.source === "posts-week.json");
+      if (postTab === "pool") rows = rows.filter((p) => p.source === "posts.json");
+      if (postTab === "posted") rows = rows.filter((p) => p.status === "posted");
+      document.getElementById("postCount").textContent = `${rows.length} Einträge · Klick auf Spaltenkopf sortiert`;
+      buildTable("postTable", postCols, rows, document.getElementById("postFilter").value, renderPosts);
+    }
+    function renderCreatives() {
+      const rows = catalog?.creatives ?? [];
+      document.getElementById("creativeCount").textContent = `${rows.length} Creatives · sortierbar`;
+      buildTable("creativeTable", creativeCols, rows, document.getElementById("creativeFilter").value, renderCreatives);
+    }
+    function renderTweets() {
+      const rows = analytics?.tweets ?? [];
+      document.getElementById("tweetCount").textContent = `${rows.length} Tweets · KPI-Sortierung aktiv`;
+      buildTable("tweetTable", tweetCols, rows, document.getElementById("tweetFilter").value, renderTweets);
+      const notes = [...(analytics?.notes ?? []), ...(analytics?.errors ?? [])];
+      document.getElementById("analyticsNotes").innerHTML = notes.map((n) => `• ${n}`).join("<br>");
+    }
+    function renderPostTabs() {
+      document.getElementById("postTabs").innerHTML = [
+        ["all", "Alle"], ["week", "Woche"], ["pool", "Pool"], ["posted", "Gepostet"],
+      ].map(([id, label]) =>
+        `<button class="tab ${postTab === id ? "active" : ""}" data-tab="${id}">${label}</button>`
+      ).join("");
+      document.querySelectorAll("#postTabs .tab").forEach((btn) => {
+        btn.onclick = () => { postTab = btn.dataset.tab; renderPostTabs(); renderPosts(); };
+      });
+    }
+    async function loadAnalytics() {
+      const [catRes, anaRes] = await Promise.all([fetch("/api/catalog"), fetch("/api/analytics")]);
+      catalog = await catRes.json();
+      analytics = await anaRes.json();
+      renderKpis(); renderTweets(); renderPostTabs(); renderPosts(); renderCreatives();
+    }
+    async function refreshAnalytics() {
+      const btn = document.getElementById("refreshBtn");
+      const status = document.getElementById("actionStatus");
+      btn.disabled = true;
+      status.textContent = "Abruf läuft …";
+      status.className = "status";
+      try {
+        const res = await fetch("/api/analytics/refresh", { method: "POST" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Fehler");
+        analytics = data;
+        renderKpis(); renderTweets();
+        status.textContent = `Aktualisiert ${dt(data.fetchedAt)}`;
+        status.className = "status ok";
+      } catch (e) {
+        status.textContent = e.message;
+        status.className = "status err";
+      } finally { btn.disabled = false; }
+    }
+    async function rebuildCatalog() {
+      const status = document.getElementById("actionStatus");
+      status.textContent = "Metadaten bauen …";
+      try {
+        const res = await fetch("/api/catalog/rebuild", { method: "POST" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Fehler");
+        catalog = data;
+        renderKpis(); renderPostTabs(); renderPosts(); renderCreatives();
+        status.textContent = "Katalog neu gebaut";
+        status.className = "status ok";
+      } catch (e) {
+        status.textContent = e.message;
+        status.className = "status err";
+      }
+    }
+
+    /* Nav highlight on scroll */
+    const navLinks = document.querySelectorAll("#sectionNav a");
+    const sections = [...navLinks].map((a) => document.querySelector(a.getAttribute("href")));
+    const observer = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          navLinks.forEach((a) => a.classList.toggle("active", a.getAttribute("href") === `#${e.target.id}`));
+        }
+      }
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    sections.forEach((s) => s && observer.observe(s));
+
+    document.getElementById("refreshBtn").onclick = refreshAnalytics;
+    document.getElementById("rebuildBtn").onclick = rebuildCatalog;
+    ["tweetFilter", "postFilter", "creativeFilter"].forEach((id) => {
+      document.getElementById(id).oninput = () => {
+        if (id === "tweetFilter") renderTweets();
+        if (id === "postFilter") renderPosts();
+        if (id === "creativeFilter") renderCreatives();
+      };
+    });
+
+    setInterval(tickCountdown, 1000);
+    setInterval(refreshScheduler, 5000);
+    setInterval(loadAnalytics, 60_000);
+    tickCountdown();
+    refreshScheduler();
+    loadAnalytics();
+  </script>
+</body>
+</html>

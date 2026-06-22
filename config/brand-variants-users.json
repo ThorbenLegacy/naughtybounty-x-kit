@@ -1,0 +1,26 @@
+[
+  {
+    "id": "custom-challenge",
+    "title": "Custom Challenge",
+    "fontSize": 52,
+    "tagline": "Stell deine<br /><span class=\"accent-wrap\"><span class=\"accent\">Challenge.</span></span><br />Klar bepreist.",
+    "href": "https://naughtybounty.com/challenges/create",
+    "trust": "18+ only · Verifizierte Creator · Treuhand-Zahlung"
+  },
+  {
+    "id": "fair-budget",
+    "title": "Fair bezahlen",
+    "fontSize": 48,
+    "tagline": "Budget festlegen.<br /><span class=\"accent-wrap\"><span class=\"accent\">Fair bezahlen.</span></span>",
+    "href": "https://naughtybounty.com",
+    "trust": "Kein Abo-Zwang · Escrow · Review-Schutz"
+  },
+  {
+    "id": "treuhand-sicher",
+    "title": "Treuhand",
+    "fontSize": 56,
+    "tagline": "Zahlen in<br /><span class=\"accent-wrap\"><span class=\"accent\">Treuhand.</span></span><br />Erst liefern, dann freigeben.",
+    "href": "https://naughtybounty.com",
+    "trust": "Verifizierte Creator · Geschützte Auszahlung"
+  }
+]

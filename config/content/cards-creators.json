@@ -1,0 +1,114 @@
+[
+  {
+    "id": "fact-of-chat-stress",
+    "href": "https://naughtybounty.com/for-creators",
+    "kicker": "Facts · For Creators",
+    "headlinePre": "OnlyFans = oft",
+    "headlineAccent": "Chat-Stress",
+    "headlinePost": "",
+    "badge": "Creator-first",
+    "cta": "Creator werden",
+    "urlLine": "naughtybounty.com/for-creators",
+    "points": [
+      { "title": "NaughtyBounty", "description": "Bezahlte Challenges — kein endloser DM-Druck" },
+      { "title": "Drops", "description": "Pakete verkaufen, ohne live online zu sein" },
+      { "title": "Du entscheidest", "description": "Grenzen & Sichtbarkeit bleiben bei dir" }
+    ]
+  },
+  {
+    "id": "func-challenges-drops",
+    "href": "https://naughtybounty.com/for-creators",
+    "kicker": "So funktioniert's · Creators",
+    "headlinePre": "Zwei Wege zu",
+    "headlineAccent": "Einnahmen",
+    "headlinePost": "",
+    "badge": "Challenges + Drops",
+    "cta": "Mehr erfahren",
+    "urlLine": "naughtybounty.com/for-creators",
+    "points": [
+      { "title": "Challenges", "description": "Bezahlten Auftrag annehmen & liefern" },
+      { "title": "Drops", "description": "Fertige Pakete einmal hochladen, mehrfach verkaufen" },
+      { "title": "Level-System", "description": "Je aktiver, desto niedriger die Plattformgebühr" }
+    ]
+  },
+  {
+    "id": "fact-gebuehr-level",
+    "href": "https://naughtybounty.com/for-creators",
+    "kicker": "Facts · For Creators",
+    "headlinePre": "Gebühr sinkt mit",
+    "headlineAccent": "deinem Level",
+    "headlinePost": "",
+    "badge": "20 % → 10 %",
+    "cta": "Creator werden",
+    "urlLine": "naughtybounty.com/for-creators",
+    "points": [
+      { "title": "OnlyFans & Co.", "description": "Fixe Plattform-Anteile — wenig Transparenz" },
+      { "title": "NaughtyBounty", "description": "10 Level: je mehr du lieferst, desto weniger zahlst du" },
+      { "title": "Fair", "description": "Keine versteckten Stufen, kein Kleingedrucktes" }
+    ]
+  },
+  {
+    "id": "fact-privatsphaere",
+    "href": "https://naughtybounty.com/for-creators",
+    "kicker": "Facts · For Creators",
+    "headlinePre": "Privatsphäre ist",
+    "headlineAccent": "kein Extra",
+    "headlinePost": "",
+    "badge": "Diskret · Verifiziert",
+    "cta": "Starten",
+    "urlLine": "naughtybounty.com/for-creators",
+    "points": [
+      { "title": "Künstlername", "description": "Optional privates Profil — kontrollierte Sichtbarkeit" },
+      { "title": "Geschützte Previews", "description": "Vollqualität erst nach Zahlung" },
+      { "title": "Kein Agentur-Zwang", "description": "Dein Profil, deine Regeln" }
+    ]
+  },
+  {
+    "id": "func-level-system",
+    "href": "https://naughtybounty.com/for-creators",
+    "kicker": "Function · For Creators",
+    "headlinePre": "Mehr liefern =",
+    "headlineAccent": "weniger Gebühr",
+    "headlinePost": "",
+    "badge": "1 € = 1 XP",
+    "cta": "Zum Creator-Hub",
+    "urlLine": "naughtybounty.com/for-creators",
+    "points": [
+      { "title": "Verdienen", "description": "Challenges & Drops geben XP" },
+      { "title": "Level auf", "description": "Plattformgebühr sinkt Schritt für Schritt" },
+      { "title": "Top-Creator", "description": "Nur noch 10 % — statt 20 % am Start" }
+    ]
+  },
+  {
+    "id": "tip-content-batch",
+    "href": "https://naughtybounty.com/for-creators",
+    "kicker": "Content-Tipp · Creators",
+    "headlinePre": "Ein Shoot.",
+    "headlineAccent": "Mehrfach verkaufen.",
+    "headlinePost": "",
+    "badge": "Drops · Skalieren",
+    "cta": "Drops nutzen",
+    "urlLine": "naughtybounty.com/for-creators",
+    "points": [
+      { "title": "Batch denken", "description": "Serien statt Einzelstücke — weniger Aufwand" },
+      { "title": "Cover + Previews", "description": "Du wählst, was sichtbar ist" },
+      { "title": "Passives Potenzial", "description": "Ein Drop, viele Käufer" }
+    ]
+  },
+  {
+    "id": "tip-drops-resell",
+    "href": "https://naughtybounty.com/for-creators",
+    "kicker": "Content-Tipp · Creators",
+    "headlinePre": "Bestehenden Content",
+    "headlineAccent": "monetarisieren",
+    "headlinePost": "",
+    "badge": "Ohne neu zu drehen",
+    "cta": "Creator werden",
+    "urlLine": "naughtybounty.com/for-creators",
+    "points": [
+      { "title": "Archiv nutzen", "description": "Qualitäts-Clips als Drops listen" },
+      { "title": "Challenges kombinieren", "description": "Custom-Aufträge + Katalog parallel" },
+      { "title": "Tempo halten", "description": "In deinem Rhythmus — kein Burnout" }
+    ]
+  }
+]

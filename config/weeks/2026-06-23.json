@@ -1,0 +1,261 @@
+{
+  "weekStart": "2026-06-23",
+  "weekEnd": "2026-06-29",
+  "title": "KW 26 · 23.–29. Juni 2026",
+  "timezone": "Europe/Berlin",
+  "slots": ["08:00", "14:00", "19:00"],
+  "days": [
+    {
+      "date": "2026-06-23",
+      "label": "Montag",
+      "posts": [
+        {
+          "time": "08:00",
+          "audience": "creators",
+          "theme": "Brand",
+          "creative": "brand/deine-regeln",
+          "id": "w-mon-08-c-brand-regeln",
+          "link": "https://naughtybounty.com/for-creators",
+          "text": "Dein Content. Deine Regeln. Deine Einnahmen.\n\nStarte als verifizierte 18+ Creatorin — diskret, flexibel, selbstbestimmt.",
+          "image": "exports/brand/deine-regeln.png"
+        },
+        {
+          "time": "14:00",
+          "audience": "creators",
+          "theme": "Facts",
+          "creative": "cards/fact-of-chat-stress",
+          "id": "w-mon-14-c-fact-chat",
+          "link": "https://naughtybounty.com/for-creators",
+          "text": "OnlyFans = oft endloser Chat-Stress.\n\nAuf NaughtyBounty: bezahlte Challenges & Drops — du entscheidest, wann du online bist.",
+          "image": "exports/cards/fact-of-chat-stress.png"
+        },
+        {
+          "time": "19:00",
+          "audience": "creators",
+          "theme": "Function",
+          "creative": "cards/func-challenges-drops",
+          "id": "w-mon-19-c-func-wege",
+          "link": "https://naughtybounty.com/for-creators",
+          "text": "Zwei Wege zu Einnahmen auf NaughtyBounty:\n\nChallenges annehmen · Drops verkaufen · Level senkt deine Gebühr.",
+          "image": "exports/cards/func-challenges-drops.png"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-24",
+      "label": "Dienstag",
+      "posts": [
+        {
+          "time": "08:00",
+          "audience": "users",
+          "theme": "Brand",
+          "creative": "brand-users/custom-challenge",
+          "id": "w-tue-08-u-brand-challenge",
+          "link": "https://naughtybounty.com/challenges/create",
+          "text": "Custom Content bestellen — klar bepreist, ohne Chaos.\n\nStell deine Challenge. Verifizierte Creator bewerben sich.",
+          "image": "exports/brand-users/custom-challenge.png"
+        },
+        {
+          "time": "14:00",
+          "audience": "users",
+          "theme": "Facts",
+          "creative": "cards/fact-treuhand",
+          "id": "w-tue-14-u-fact-escrow",
+          "link": "https://naughtybounty.com",
+          "text": "Direktzahlung per DM = Risiko.\n\nNaughtyBounty: Budget in Treuhand. Erst Lieferung, dann Freigabe.",
+          "image": "exports/cards/fact-treuhand.png"
+        },
+        {
+          "time": "19:00",
+          "audience": "users",
+          "theme": "How-to",
+          "creative": "cards/howto-challenge-4",
+          "id": "w-tue-19-u-howto-4",
+          "link": "https://naughtybounty.com/challenges/create",
+          "text": "Challenge in 4 Schritten:\n\n1 Anlegen · 2 Bewerbungen · 3 Creator wählen · 4 Liefern & freigeben.",
+          "image": "exports/cards/howto-challenge-4.png"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-25",
+      "label": "Mittwoch",
+      "posts": [
+        {
+          "time": "08:00",
+          "audience": "creators",
+          "theme": "Bullets",
+          "creative": "bullets/default",
+          "id": "w-wed-08-c-bullets",
+          "link": "https://naughtybounty.com/for-creators",
+          "text": "Kein Bock auf Chatten? Verdiene mit Content.\n\nPakete · Challenges · skalieren. 18+ · verifiziert.",
+          "image": "exports/bullets/default.png"
+        },
+        {
+          "time": "14:00",
+          "audience": "creators",
+          "theme": "Content-Tipp",
+          "creative": "cards/tip-content-batch",
+          "id": "w-wed-14-c-tip-batch",
+          "link": "https://naughtybounty.com/for-creators",
+          "text": "Creator-Tipp: Ein Shoot, mehrfach verkaufen.\n\nDrops + Serien-Content = weniger Aufwand, mehr Umsatz.",
+          "image": "exports/cards/tip-content-batch.png"
+        },
+        {
+          "time": "19:00",
+          "audience": "creators",
+          "theme": "Facts",
+          "creative": "cards/fact-gebuehr-level",
+          "id": "w-wed-19-c-fact-level",
+          "link": "https://naughtybounty.com/for-creators",
+          "text": "Fixe Plattformgebühr? Nicht bei uns.\n\n10 Level auf NaughtyBounty: von 20 % runter auf 10 % — je mehr du lieferst.",
+          "image": "exports/cards/fact-gebuehr-level.png"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-26",
+      "label": "Donnerstag",
+      "posts": [
+        {
+          "time": "08:00",
+          "audience": "users",
+          "theme": "Bullets",
+          "creative": "bullets-users/default",
+          "id": "w-thu-08-u-bullets",
+          "link": "https://naughtybounty.com/challenges/create",
+          "text": "Custom Content ohne Chaos:\n\nChallenge erstellen · Creator wählen · sicher in Treuhand zahlen.",
+          "image": "exports/bullets-users/default.png"
+        },
+        {
+          "time": "14:00",
+          "audience": "users",
+          "theme": "Facts",
+          "creative": "cards/fact-verifiziert",
+          "id": "w-thu-14-u-fact-verified",
+          "link": "https://naughtybounty.com",
+          "text": "Random DMs vs. verifizierte Creator.\n\nAuf NaughtyBounty: ID + Selfie — echte Profile, echtes Portfolio.",
+          "image": "exports/cards/fact-verifiziert.png"
+        },
+        {
+          "time": "19:00",
+          "audience": "users",
+          "theme": "Brand",
+          "creative": "brand-users/fair-budget",
+          "id": "w-thu-19-u-brand-budget",
+          "link": "https://naughtybounty.com",
+          "text": "Budget festlegen. Fair bezahlen.\n\nKein Abo-Zwang — du zahlst, wenn du eine Challenge willst.",
+          "image": "exports/brand-users/fair-budget.png"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-27",
+      "label": "Freitag",
+      "posts": [
+        {
+          "time": "08:00",
+          "audience": "creators",
+          "theme": "Brand",
+          "creative": "brand/kein-chatten",
+          "id": "w-fri-08-c-brand-chat",
+          "link": "https://naughtybounty.com/for-creators",
+          "text": "Kein Bock auf Chatten?\n\nVerdiene mit deinem Content — ohne endlosen DM-Stress.",
+          "image": "exports/brand/kein-chatten.png"
+        },
+        {
+          "time": "14:00",
+          "audience": "creators",
+          "theme": "Facts",
+          "creative": "cards/fact-privatsphaere",
+          "id": "w-fri-14-c-fact-privacy",
+          "link": "https://naughtybounty.com/for-creators",
+          "text": "Privatsphäre ist kein Extra.\n\nKünstlername, private Profile, geschützte Previews — creator-first auf NaughtyBounty.",
+          "image": "exports/cards/fact-privatsphaere.png"
+        },
+        {
+          "time": "19:00",
+          "audience": "creators",
+          "theme": "Function",
+          "creative": "cards/func-level-system",
+          "id": "w-fri-19-c-func-level",
+          "link": "https://naughtybounty.com/for-creators",
+          "text": "Mehr liefern = weniger Gebühr.\n\n1 € Umsatz = 1 XP. Top-Creator zahlen nur 10 % Plattformgebühr.",
+          "image": "exports/cards/func-level-system.png"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-28",
+      "label": "Samstag",
+      "posts": [
+        {
+          "time": "08:00",
+          "audience": "users",
+          "theme": "How-to",
+          "creative": "cards/howto-budget-briefing",
+          "id": "w-sat-08-u-howto-brief",
+          "link": "https://naughtybounty.com/challenges/create",
+          "text": "Gutes Briefing = bessere Lieferung.\n\nBudget fair setzen · Details klar · Portfolio des Creators checken.",
+          "image": "exports/cards/howto-budget-briefing.png"
+        },
+        {
+          "time": "14:00",
+          "audience": "users",
+          "theme": "Facts",
+          "creative": "cards/fact-kein-abo",
+          "id": "w-sat-14-u-fact-abo",
+          "link": "https://naughtybounty.com",
+          "text": "Kein Abo-Zwang.\n\nOnlyFans-Modell: monatlich zahlen. NaughtyBounty: pro Challenge oder Drop — wenn du willst.",
+          "image": "exports/cards/fact-kein-abo.png"
+        },
+        {
+          "time": "19:00",
+          "audience": "users",
+          "theme": "Bullets",
+          "creative": "bullets-users/default",
+          "id": "w-sat-19-u-bullets",
+          "link": "https://naughtybounty.com/challenges/create",
+          "text": "Challenge erstellen. Creator wählen. Sicher bezahlen.\n\nTreuhand · Verifiziert · 18+ only.",
+          "image": "exports/bullets-users/default.png"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-29",
+      "label": "Sonntag",
+      "posts": [
+        {
+          "time": "08:00",
+          "audience": "creators",
+          "theme": "Content-Tipp",
+          "creative": "cards/tip-drops-resell",
+          "id": "w-sun-08-c-tip-drops",
+          "link": "https://naughtybounty.com/for-creators",
+          "text": "Bestehenden Content monetarisieren — ohne neu zu drehen.\n\nArchiv als Drops listen + Challenges parallel.",
+          "image": "exports/cards/tip-drops-resell.png"
+        },
+        {
+          "time": "14:00",
+          "audience": "users",
+          "theme": "Brand",
+          "creative": "brand-users/treuhand-sicher",
+          "id": "w-sun-14-u-brand-escrow",
+          "link": "https://naughtybounty.com",
+          "text": "Zahlen in Treuhand. Erst liefern, dann freigeben.\n\nVerifizierte Creator · Escrow · Review-Schutz.",
+          "image": "exports/brand-users/treuhand-sicher.png"
+        },
+        {
+          "time": "19:00",
+          "audience": "creators",
+          "theme": "Brand",
+          "creative": "brand/new-onlyfans",
+          "id": "w-sun-19-c-brand-of",
+          "link": "https://naughtybounty.com/for-creators",
+          "text": "New OnlyFans?\n\nChallenges, Drops & sinkende Gebühr — creator-first auf NaughtyBounty.",
+          "image": "exports/brand/new-onlyfans.png"
+        }
+      ]
+    }
+  ]
+}

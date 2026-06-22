@@ -1,0 +1,31 @@
+node_modules/
+.env
+.env.local
+.env.*.local
+
+# Bot-/Laufzeitdaten (nicht committen)
+bot/state.json
+bot/.oauth2-pending.json
+data/analytics.json
+
+# PNG-Exports — lokal bauen oder vom Server ziehen (npm run assets:pull)
+exports/**/*.png
+exports-light/**/*.png
+!exports/.gitkeep
+!exports-light/.gitkeep
+
+# Generierte Standalone-HTML (werden beim Build erzeugt)
+creatives/html/**/*-standalone.html
+
+# Python / Build-Artefakte
+__pycache__/
+*.pyc
+.export-frames/
+
+# Video-Demos (optional lokal)
+schedule/videos/*.webm
+schedule/videos/*.mp4
+
+# OS
+.DS_Store
+Thumbs.db

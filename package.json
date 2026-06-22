@@ -1,0 +1,31 @@
+{
+  "name": "naughtybounty-x-kit",
+  "private": true,
+  "description": "Standalone X-Marketing-Kit für NaughtyBounty (Creatives + Bot + Dashboard)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "tsx bot/dashboard.ts",
+    "build": "python scripts/build-creatives.py",
+    "export": "python scripts/export-png.py",
+    "build:all": "python scripts/build-all.py",
+    "week:build": "python scripts/build-week-schedule.py",
+    "assets:pull": "python scripts/pull-assets.py",
+    "x:preview": "tsx bot/post-daily.ts --preview",
+    "x:verify": "tsx bot/verify-x.ts",
+    "x:oauth2": "tsx bot/oauth2-setup.ts",
+    "x:validate-creative": "python scripts/validate-creative.py",
+    "x:post": "tsx bot/post-daily.ts",
+    "x:schedule": "tsx bot/scheduler.ts",
+    "x:dashboard": "tsx bot/dashboard.ts",
+    "x:dashboard:video": "python scripts/record-dashboard-video.py",
+    "metadata:build": "python scripts/build-metadata.py",
+    "x:analytics": "tsx bot/fetch-analytics.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "tsx": "^4.20.5",
+    "twitter-api-v2": "^1.27.0"
+  }
+}

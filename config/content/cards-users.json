@@ -1,0 +1,82 @@
+[
+  {
+    "id": "fact-treuhand",
+    "href": "https://naughtybounty.com",
+    "kicker": "Facts · For Users",
+    "headlinePre": "Direktzahlung =",
+    "headlineAccent": "Risiko",
+    "headlinePost": "",
+    "badge": "Escrow · Fair",
+    "cta": "Challenge stellen",
+    "urlLine": "naughtybounty.com",
+    "points": [
+      { "title": "Andere Plattformen", "description": "Oft kein Schutz wenn Creator verschwindet" },
+      { "title": "NaughtyBounty", "description": "Budget in Treuhand — Freigabe nach Lieferung" },
+      { "title": "Review-Fenster", "description": "Automatische Freigabe wenn niemand reagiert" }
+    ]
+  },
+  {
+    "id": "howto-challenge-4",
+    "href": "https://naughtybounty.com/challenges/create",
+    "kicker": "How-to · For Users",
+    "headlinePre": "Challenge in",
+    "headlineAccent": "4 Schritten",
+    "headlinePost": "",
+    "badge": "18+ · Verifiziert",
+    "cta": "Jetzt starten",
+    "urlLine": "naughtybounty.com/challenges/create",
+    "points": [
+      { "title": "1 · Anlegen", "description": "Budget, Thema & Details festlegen" },
+      { "title": "2 · Bewerbungen", "description": "Verifizierte Creator bewerben sich" },
+      { "title": "3 · Lieferung", "description": "Chat in der App, Escrow schützt beide Seiten" }
+    ]
+  },
+  {
+    "id": "fact-verifiziert",
+    "href": "https://naughtybounty.com",
+    "kicker": "Facts · For Users",
+    "headlinePre": "Nur",
+    "headlineAccent": "verifizierte",
+    "headlinePost": " Creator",
+    "badge": "ID + Selfie",
+    "cta": "Creator entdecken",
+    "urlLine": "naughtybounty.com",
+    "points": [
+      { "title": "Random DMs", "description": "Keine echte Verifizierung — hohes Risiko" },
+      { "title": "NaughtyBounty", "description": "Creator mit Ausweis & Selfie bestätigt" },
+      { "title": "Vertrauen", "description": "Profil, Portfolio & Bewertungen sichtbar" }
+    ]
+  },
+  {
+    "id": "howto-budget-briefing",
+    "href": "https://naughtybounty.com/challenges/create",
+    "kicker": "How-to · For Users",
+    "headlinePre": "Gutes Briefing =",
+    "headlineAccent": "bessere Lieferung",
+    "headlinePost": "",
+    "badge": "Klar · Fair",
+    "cta": "Challenge erstellen",
+    "urlLine": "naughtybounty.com/challenges/create",
+    "points": [
+      { "title": "Budget realistisch", "description": "Fairer Preis zieht bessere Bewerbungen an" },
+      { "title": "Details schreiben", "description": "Stil, Länge, Grenzen — schwarz auf weiß" },
+      { "title": "Creator wählen", "description": "Portfolio checken, dann zuweisen" }
+    ]
+  },
+  {
+    "id": "fact-kein-abo",
+    "href": "https://naughtybounty.com",
+    "kicker": "Facts · For Users",
+    "headlinePre": "Kein",
+    "headlineAccent": "Abo-Zwang",
+    "headlinePost": "",
+    "badge": "Pay per Challenge",
+    "cta": "Mehr erfahren",
+    "urlLine": "naughtybounty.com",
+    "points": [
+      { "title": "OnlyFans-Modell", "description": "Monatlich zahlen — auch wenn du pausierst" },
+      { "title": "NaughtyBounty", "description": "Du zahlst pro Challenge oder Drop — wenn du willst" },
+      { "title": "Kontrolle", "description": "Kein Druck, kein verstecktes Abo" }
+    ]
+  }
+]

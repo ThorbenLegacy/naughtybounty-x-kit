@@ -1,0 +1,270 @@
+{
+  "account": "LucaBrandblue",
+  "link": "https://naughtybounty.com/for-creators",
+  "weekStart": "2026-06-23",
+  "posts": [
+    {
+      "id": "w-mon-08-c-brand-regeln",
+      "text": "Dein Content. Deine Regeln. Deine Einnahmen.\n\nStarte als verifizierte 18+ Creatorin — diskret, flexibel, selbstbestimmt.",
+      "image": "exports/brand/deine-regeln.png",
+      "link": "https://naughtybounty.com/for-creators",
+      "hashtags": [
+        "Creator",
+        "ContentCreator",
+        "OnlyFansAlternative",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "dark"
+    },
+    {
+      "id": "w-mon-14-c-fact-chat",
+      "text": "OnlyFans = oft endloser Chat-Stress.\n\nAuf NaughtyBounty: bezahlte Challenges & Drops — du entscheidest, wann du online bist.",
+      "image": "exports-light/cards/fact-of-chat-stress.png",
+      "link": "https://naughtybounty.com/for-creators",
+      "hashtags": [
+        "OnlyFans",
+        "CreatorEconomy",
+        "AdultCreator",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "light"
+    },
+    {
+      "id": "w-mon-19-c-func-wege",
+      "text": "Zwei Wege zu Einnahmen auf NaughtyBounty:\n\nChallenges annehmen · Drops verkaufen · Level senkt deine Gebühr.",
+      "image": "exports/cards/func-challenges-drops.png",
+      "link": "https://naughtybounty.com/for-creators",
+      "hashtags": [
+        "Challenges",
+        "Drops",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "dark"
+    },
+    {
+      "id": "w-tue-08-u-brand-challenge",
+      "text": "Custom Content bestellen — klar bepreist, ohne Chaos.\n\nStell deine Challenge. Verifizierte Creator bewerben sich.",
+      "image": "exports-light/brand-users/custom-challenge.png",
+      "link": "https://naughtybounty.com/challenges/create",
+      "hashtags": [
+        "CustomContent",
+        "AdultContent",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "light"
+    },
+    {
+      "id": "w-tue-14-u-fact-escrow",
+      "text": "Direktzahlung per DM = Risiko.\n\nNaughtyBounty: Budget in Treuhand. Erst Lieferung, dann Freigabe.",
+      "image": "exports/cards/fact-treuhand.png",
+      "link": "https://naughtybounty.com",
+      "hashtags": [
+        "OnlyFansAlternative",
+        "Escrow",
+        "VerifiedCreators",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "dark"
+    },
+    {
+      "id": "w-tue-19-u-howto-4",
+      "text": "Challenge in 4 Schritten:\n\n1 Anlegen · 2 Bewerbungen · 3 Creator wählen · 4 Liefern & freigeben.",
+      "image": "exports-light/cards/howto-challenge-4.png",
+      "link": "https://naughtybounty.com/challenges/create",
+      "hashtags": [
+        "CustomContent",
+        "Challenge",
+        "AdultContent",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "light"
+    },
+    {
+      "id": "w-wed-08-c-bullets",
+      "text": "Kein Bock auf Chatten? Verdiene mit Content.\n\nPakete · Challenges · skalieren. 18+ · verifiziert.",
+      "image": "exports/bullets/default.png",
+      "link": "https://naughtybounty.com/for-creators",
+      "hashtags": [
+        "MonetizeContent",
+        "AdultCreator",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "dark"
+    },
+    {
+      "id": "w-wed-14-c-tip-batch",
+      "text": "Creator-Tipp: Ein Shoot, mehrfach verkaufen.\n\nDrops + Serien-Content = weniger Aufwand, mehr Umsatz.",
+      "image": "exports-light/cards/tip-content-batch.png",
+      "link": "https://naughtybounty.com/for-creators",
+      "hashtags": [
+        "CreatorTips",
+        "ContentMonetization",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "light"
+    },
+    {
+      "id": "w-wed-19-c-fact-level",
+      "text": "Fixe Plattformgebühr? Nicht bei uns.\n\n10 Level auf NaughtyBounty: von 20 % runter auf 10 % — je mehr du lieferst.",
+      "image": "exports/cards/fact-gebuehr-level.png",
+      "link": "https://naughtybounty.com/for-creators",
+      "hashtags": [
+        "OnlyFans",
+        "CreatorEconomy",
+        "AdultCreator",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "dark"
+    },
+    {
+      "id": "w-thu-08-u-bullets",
+      "text": "Custom Content ohne Chaos:\n\nChallenge erstellen · Creator wählen · sicher in Treuhand zahlen.",
+      "image": "exports-light/bullets-users/default.png",
+      "link": "https://naughtybounty.com/challenges/create",
+      "hashtags": [
+        "CustomContent",
+        "Challenge",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "light"
+    },
+    {
+      "id": "w-thu-14-u-fact-verified",
+      "text": "Random DMs vs. verifizierte Creator.\n\nAuf NaughtyBounty: ID + Selfie — echte Profile, echtes Portfolio.",
+      "image": "exports/cards/fact-verifiziert.png",
+      "link": "https://naughtybounty.com",
+      "hashtags": [
+        "OnlyFansAlternative",
+        "Escrow",
+        "VerifiedCreators",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "dark"
+    },
+    {
+      "id": "w-thu-19-u-brand-budget",
+      "text": "Budget festlegen. Fair bezahlen.\n\nKein Abo-Zwang — du zahlst, wenn du eine Challenge willst.",
+      "image": "exports-light/brand-users/fair-budget.png",
+      "link": "https://naughtybounty.com",
+      "hashtags": [
+        "CustomContent",
+        "AdultContent",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "light"
+    },
+    {
+      "id": "w-fri-08-c-brand-chat",
+      "text": "Kein Bock auf Chatten?\n\nVerdiene mit deinem Content — ohne endlosen DM-Stress.",
+      "image": "exports/brand/kein-chatten.png",
+      "link": "https://naughtybounty.com/for-creators",
+      "hashtags": [
+        "Creator",
+        "ContentCreator",
+        "OnlyFansAlternative",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "dark"
+    },
+    {
+      "id": "w-fri-14-c-fact-privacy",
+      "text": "Privatsphäre ist kein Extra.\n\nKünstlername, private Profile, geschützte Previews — creator-first auf NaughtyBounty.",
+      "image": "exports-light/cards/fact-privatsphaere.png",
+      "link": "https://naughtybounty.com/for-creators",
+      "hashtags": [
+        "OnlyFans",
+        "CreatorEconomy",
+        "AdultCreator",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "light"
+    },
+    {
+      "id": "w-fri-19-c-func-level",
+      "text": "Mehr liefern = weniger Gebühr.\n\n1 € Umsatz = 1 XP. Top-Creator zahlen nur 10 % Plattformgebühr.",
+      "image": "exports/cards/func-level-system.png",
+      "link": "https://naughtybounty.com/for-creators",
+      "hashtags": [
+        "Challenges",
+        "Drops",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "dark"
+    },
+    {
+      "id": "w-sat-08-u-howto-brief",
+      "text": "Gutes Briefing = bessere Lieferung.\n\nBudget fair setzen · Details klar · Portfolio des Creators checken.",
+      "image": "exports-light/cards/howto-budget-briefing.png",
+      "link": "https://naughtybounty.com/challenges/create",
+      "hashtags": [
+        "CustomContent",
+        "Challenge",
+        "AdultContent",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "light"
+    },
+    {
+      "id": "w-sat-14-u-fact-abo",
+      "text": "Kein Abo-Zwang.\n\nOnlyFans-Modell: monatlich zahlen. NaughtyBounty: pro Challenge oder Drop — wenn du willst.",
+      "image": "exports/cards/fact-kein-abo.png",
+      "link": "https://naughtybounty.com",
+      "hashtags": [
+        "OnlyFansAlternative",
+        "Escrow",
+        "VerifiedCreators",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "dark"
+    },
+    {
+      "id": "w-sat-19-u-bullets",
+      "text": "Challenge erstellen. Creator wählen. Sicher bezahlen.\n\nTreuhand · Verifiziert · 18+ only.",
+      "image": "exports-light/bullets-users/default.png",
+      "link": "https://naughtybounty.com/challenges/create",
+      "hashtags": [
+        "CustomContent",
+        "Challenge",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "light"
+    },
+    {
+      "id": "w-sun-08-c-tip-drops",
+      "text": "Bestehenden Content monetarisieren — ohne neu zu drehen.\n\nArchiv als Drops listen + Challenges parallel.",
+      "image": "exports/cards/tip-drops-resell.png",
+      "link": "https://naughtybounty.com/for-creators",
+      "hashtags": [
+        "CreatorTips",
+        "ContentMonetization",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "dark"
+    },
+    {
+      "id": "w-sun-14-u-brand-escrow",
+      "text": "Zahlen in Treuhand. Erst liefern, dann freigeben.\n\nVerifizierte Creator · Escrow · Review-Schutz.",
+      "image": "exports-light/brand-users/treuhand-sicher.png",
+      "link": "https://naughtybounty.com",
+      "hashtags": [
+        "CustomContent",
+        "AdultContent",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "light"
+    },
+    {
+      "id": "w-sun-19-c-brand-of",
+      "text": "New OnlyFans?\n\nChallenges, Drops & sinkende Gebühr — creator-first auf NaughtyBounty.",
+      "image": "exports/brand/new-onlyfans.png",
+      "link": "https://naughtybounty.com/for-creators",
+      "hashtags": [
+        "Creator",
+        "ContentCreator",
+        "OnlyFansAlternative",
+        "NaughtyBounty"
+      ],
+      "colorScheme": "dark"
+    }
+  ]
+}

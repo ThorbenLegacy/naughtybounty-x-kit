@@ -1,0 +1,113 @@
+/**
+ * NaughtyBounty — Style Guide (for-creators / Dark Theme)
+ * Extrahiert aus globals.css + for-creators/page.tsx
+ * Für HTML-Creatives und externe Marketing-Assets
+ */
+
+:root {
+  /* Dark Theme — Primary Palette */
+  --background: #1e1e2c;
+  --foreground: #f4f4fc;
+  --muted-foreground: #9e9ebc;
+  --primary: #a78bfa;
+  --primary-foreground: #f4f4fc;
+  --border: #3c3c58;
+  --card: #28283e;
+  --secondary: #32324c;
+
+  --radius: 0.75rem;
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: 16px;
+
+  --font-sans: Figtree, ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Typography — Hero H1 (page.tsx) */
+.hero-title {
+  font-family: var(--font-sans);
+  font-weight: 900; /* font-black */
+  line-height: 0.95;
+  letter-spacing: -0.025em; /* tracking-tight */
+  color: var(--foreground);
+}
+
+/* Accent Pill — titleAccent in Hero */
+.accent-pill {
+  display: inline-flex;
+  align-items: baseline;
+  border-radius: var(--radius-2xl);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0 0.75rem; /* px-3, md:px-4 in React */
+  box-shadow: 0 4px 16px rgba(167, 139, 250, 0.28);
+}
+
+/* Body / Lead */
+.lead {
+  font-size: 1rem;
+  line-height: 1.625;
+  color: var(--muted-foreground);
+}
+
+@media (min-width: 768px) {
+  .lead {
+    font-size: 1.125rem;
+  }
+}
+
+/* Muted secondary text */
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+/* CTA Button (primary) */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-xl);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 6px 24px rgba(167, 139, 250, 0.25);
+  text-decoration: none;
+}
+
+/* Badge / Trust pill */
+.badge {
+  display: inline-flex;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(40, 40, 62, 0.85);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Background glow (Creatives) */
+.bg-glow {
+  background: radial-gradient(
+    circle at 50% 40%,
+    rgba(167, 139, 250, 0.16),
+    transparent 58%
+  );
+}
+
+/* X Post dimensions */
+.ad-canvas-x {
+  width: 1200px;
+  height: 675px; /* 16:9 — empfohlen für X/Twitter Bild-Posts */
+  overflow: hidden;
+  background: var(--background);
+}
+
+/* Depth hierarchy (reference)
+ * #1e1e2c  Background
+ * #232338  Sidebar
+ * #28283e  Card
+ * #32324c  Secondary
+ * #3c3c58  Border
+ */
