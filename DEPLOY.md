@@ -21,10 +21,20 @@ git push -u origin main
 
 Der Container baut beim ersten Deploy alle Creatives (`npm run build:all` inkl. PNG-Export). Das dauert einige Minuten.
 
-### Healthcheck
+### Healthcheck (nur Dashboard — in Railway UI setzen)
+
+**Nicht** in `railway.toml` — sonst erzwingt Railway `/health` auch für den Scheduler (kein Webserver → Deploy schlägt fehl).
+
+1. **Dashboard-Service** → Settings → **Healthcheck Path:** `/health`
+2. Optional **Healthcheck Timeout:** `300` (Sekunden), wenn der Docker-Build lange dauert
+3. **Scheduler-Service** → **Healthcheck Path leer lassen**
+
+Endpoint (Dashboard):
 
 - `GET /health` → `{ ok: true, exports: true, exportsLight: true }`
 - `GET /api/assets-manifest` → Liste aller PNG-Pfade
+
+Siehe [Railway Healthchecks](https://docs.railway.com/deployments/healthchecks).
 
 ### Env-Variablen (Railway)
 
@@ -85,7 +95,8 @@ Zweiten Service im gleichen Projekt anlegen, **gleiches Repo**, anderer Start-Be
 npm run x:schedule -- --week
 ```
 
-- Gleiche Env-Variablen wie beim Dashboard
+- Gleiche Env-Variablen wie beim Dashboard (X OAuth — **ohne** `DASHBOARD_PASSWORD`)
+- **Healthcheck Path leer** — Scheduler hat keinen HTTP-Server
 - **Volume** (empfohlen): `/app/bot/state.json` und `/app/data/` mounten, damit Post-Status zwischen Restarts erhalten bleibt
 - PNGs müssen im Image vorhanden sein (`BUILD_ASSETS=1`) oder per Volume
 
@@ -145,3 +156,5 @@ Railway Docker Build
 | Light-Bilder 404 | Dashboard neu deployen, `/health` prüfen |
 | Bot postet ohne Bild | PNGs auf dem Scheduler-Service vorhanden? |
 | Build timeout | `BUILD_ASSETS=0`, PNGs lokal bauen + Volume |
+| Scheduler: „service unavailable“ beim Deploy | Healthcheck in UI leer; `railway.toml` darf kein `healthcheckPath` setzen |
+| Dashboard: Healthcheck timeout | In UI `/health` + Timeout 300s; App muss auf `PORT` lauschen |
