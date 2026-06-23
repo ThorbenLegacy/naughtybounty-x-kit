@@ -46,17 +46,22 @@ async function main(): Promise<void> {
   const access = env.X_OAUTH2_ACCESS_TOKEN;
   const refresh = env.X_OAUTH2_REFRESH_TOKEN;
 
-  if (access) await tryMe("OAuth2 Access (Datei)", new TwitterApi(access));
+  let accessOk = false;
+  if (access) accessOk = await tryMe("OAuth2 Access (Datei)", new TwitterApi(access));
 
-  if (cid && refresh) {
+  // Refresh nur wenn Access fehlschlägt — sonst rotiert X den Refresh-Token ohne Speicherung.
+  if (!accessOk && cid && refresh) {
     const app = sec ? new TwitterApi({ clientId: cid, clientSecret: sec }) : new TwitterApi({ clientId: cid });
     try {
       const result = await app.refreshOAuth2Token(refresh);
       await tryMe("OAuth2 Refresh (Datei)", result.client);
+      console.log("  ⚠ Refresh hat Token rotiert — npm run x:oauth2 oder Tokens in .env.local aktualisieren.");
     } catch (e: unknown) {
       const err = e as { data?: unknown; code?: number };
       console.log("✗ OAuth2 Refresh (Datei):", err.data ?? err.code ?? e);
     }
+  } else if (accessOk) {
+    console.log("ℹ OAuth2 Refresh übersprungen (Access ok).");
   }
 
   if (env.X_API_KEY && env.X_ACCESS_TOKEN) {

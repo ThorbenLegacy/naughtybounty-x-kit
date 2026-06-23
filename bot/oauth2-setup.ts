@@ -13,7 +13,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { stdin as input, stdout as output } from "node:process";
-import { OAUTH2_SCOPES } from "./lib/content";
+import { OAUTH2_SCOPES, saveOAuthTokenStore } from "./lib/content";
 
 const KIT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ENV_PATH = resolve(KIT_ROOT, ".env.local");
@@ -96,10 +96,12 @@ async function main(): Promise<void> {
         codeVerifier: pending.codeVerifier,
         redirectUri: REDIRECT_URI,
       });
+      const refreshToken = result.refreshToken;
       upsertEnv(ENV_PATH, {
         X_OAUTH2_ACCESS_TOKEN: result.accessToken,
-        ...(result.refreshToken ? { X_OAUTH2_REFRESH_TOKEN: result.refreshToken } : {}),
+        ...(refreshToken ? { X_OAUTH2_REFRESH_TOKEN: refreshToken } : {}),
       });
+      saveOAuthTokenStore(result.accessToken, refreshToken);
       const me = await result.client.v2.me();
       console.log(`\n✓ Token gespeichert für @${me.data?.username}`);
       console.log(`  Scopes: ${result.scope ?? "(nicht gemeldet)"}`);
