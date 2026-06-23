@@ -333,6 +333,8 @@
       display: inline-flex; align-items: center; gap: 8px;
       font-size: 0.78rem; font-weight: 700; padding: 6px 12px;
       border-radius: 999px; border: 1px solid var(--border); background: var(--card-muted);
+      cursor: pointer; transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+      font-family: inherit; color: inherit;
     }
     .trend-chip i {
       width: 10px; height: 10px; border-radius: 999px; display: inline-block; flex-shrink: 0;
@@ -368,6 +370,34 @@
     }
     .trend-tooltip.show { opacity: 1; }
     .trend-empty { text-align: center; padding: 48px 16px; color: var(--muted); }
+    .trend-controls {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px;
+      margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border);
+    }
+    .trend-control-group {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .trend-control-group label {
+      font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--muted);
+    }
+    .trend-select {
+      font: inherit; font-size: 0.85rem; font-weight: 700;
+      padding: 7px 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--card-muted); color: var(--fg);
+    }
+    .trend-check {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.85rem; font-weight: 700; cursor: pointer; user-select: none;
+    }
+    .trend-check input { accent-color: var(--primary); width: 16px; height: 16px; }
+    .trend-chip:hover { border-color: rgba(117,17,189,.35); }
+    .trend-chip.active {
+      border-color: var(--primary); background: rgba(117,17,189,.1);
+      box-shadow: 0 0 0 1px rgba(117,17,189,.12);
+    }
+    .trend-chip.dim { opacity: 0.38; }
+    .trend-sub { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin-top: 4px; }
 
     .post-now-row {
       display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
@@ -494,8 +524,28 @@
       <div class="section-title">Performance-Verlauf</div>
       <div class="panel trend-panel">
         <div class="panel-head">
-          <h2>Metriken über alle Posts</h2>
+          <div>
+            <h2>Metriken pro Tag</h2>
+            <p class="trend-sub">Tageswerte (Summe aller Posts) · KPI anklicken für Einzelansicht</p>
+          </div>
           <span class="count" id="trendCount">—</span>
+        </div>
+        <div class="trend-controls">
+          <div class="trend-control-group">
+            <label for="trendRange">Zeitraum</label>
+            <select class="trend-select" id="trendRange">
+              <option value="7">7 Tage</option>
+              <option value="14">14 Tage</option>
+              <option value="30" selected>30 Tage</option>
+              <option value="90">90 Tage</option>
+              <option value="all">Gesamt</option>
+            </select>
+          </div>
+          <label class="trend-check">
+            <input type="checkbox" id="trendCumulative" />
+            Kumuliert
+          </label>
+          <button type="button" class="btn secondary" id="trendShowAll" hidden>Alle KPIs</button>
         </div>
         <div class="trend-legend" id="trendLegend"></div>
         <div class="trend-chart-wrap">
@@ -1003,49 +1053,148 @@
         pick: (t) => t.organicMetrics?.userProfileClicks ?? t.nonPublicMetrics?.userProfileClicks ?? 0 },
     ];
 
+    const trendState = { windowDays: 30, cumulative: false, activeSeries: null };
+
+    function trendDayKey(iso) {
+      const d = new Date(iso);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+
+    function aggregateTweetsByDay(tweets) {
+      const map = new Map();
+      for (const t of tweets) {
+        if (!t.createdAt) continue;
+        const key = trendDayKey(t.createdAt);
+        if (!map.has(key)) {
+          const row = { date: key, postCount: 0 };
+          for (const s of TREND_SERIES) row[s.id] = 0;
+          map.set(key, row);
+        }
+        const row = map.get(key);
+        row.postCount += 1;
+        for (const s of TREND_SERIES) row[s.id] += s.pick(t);
+      }
+      return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    function filterTrendWindow(days, rows) {
+      if (days === "all") return rows;
+      const n = Number(days);
+      if (!Number.isFinite(n) || n <= 0) return rows;
+      const cutoff = new Date();
+      cutoff.setHours(0, 0, 0, 0);
+      cutoff.setDate(cutoff.getDate() - n + 1);
+      return rows.filter((d) => new Date(`${d.date}T12:00:00`) >= cutoff);
+    }
+
+    function applyTrendCumulative(rows) {
+      const acc = {};
+      for (const s of TREND_SERIES) acc[s.id] = 0;
+      return rows.map((row) => {
+        const next = { ...row };
+        for (const s of TREND_SERIES) {
+          acc[s.id] += row[s.id];
+          next[s.id] = acc[s.id];
+        }
+        return next;
+      });
+    }
+
+    function trendDayLabel(dateKey) {
+      return new Date(`${dateKey}T12:00:00`).toLocaleDateString("de-DE", {
+        weekday: "short", day: "2-digit", month: "2-digit",
+      });
+    }
+
     function renderTrendChart() {
       const svg = document.getElementById("trendChart");
       const legend = document.getElementById("trendLegend");
       const empty = document.getElementById("trendEmpty");
       const countEl = document.getElementById("trendCount");
       const tooltip = document.getElementById("trendTooltip");
-      const tweets = [...(analytics?.tweets ?? [])]
-        .filter((t) => t.createdAt)
-        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      const showAllBtn = document.getElementById("trendShowAll");
+      const rangeEl = document.getElementById("trendRange");
+      const cumEl = document.getElementById("trendCumulative");
 
-      if (!tweets.length) {
+      rangeEl.value = String(trendState.windowDays);
+      cumEl.checked = trendState.cumulative;
+      showAllBtn.hidden = !trendState.activeSeries;
+
+      let days = aggregateTweetsByDay(analytics?.tweets ?? []);
+      days = filterTrendWindow(trendState.windowDays, days);
+      if (trendState.cumulative) days = applyTrendCumulative(days);
+
+      if (!days.length) {
         svg.innerHTML = "";
         svg.style.display = "none";
         legend.innerHTML = "";
         countEl.textContent = "—";
         empty.hidden = false;
+        empty.textContent = !analytics?.tweets?.length
+          ? "Noch keine Analytics — „KPIs aktualisieren“ klicken."
+          : "Keine Daten im gewählten Zeitraum.";
         return;
       }
       empty.hidden = true;
       svg.style.display = "block";
-      countEl.textContent = `${tweets.length} Posts`;
 
-      const W = 800, H = 280, pad = { t: 24, r: 20, b: 44, l: 48 };
+      const totalPosts = days.reduce((sum, d) => sum + d.postCount, 0);
+      const modeLabel = trendState.cumulative ? "kumuliert" : "pro Tag";
+      countEl.textContent = `${days.length} Tage · ${totalPosts} Posts · ${modeLabel}`;
+
+      const visibleDefs = trendState.activeSeries
+        ? TREND_SERIES.filter((s) => s.id === trendState.activeSeries)
+        : TREND_SERIES;
+      const solo = visibleDefs.length === 1;
+
+      const W = 800, H = 280, pad = { t: 24, r: 20, b: 44, l: solo ? 56 : 48 };
       const innerW = W - pad.l - pad.r, innerH = H - pad.t - pad.b;
-      const n = tweets.length;
+      const n = days.length;
       const xAt = (i) => pad.l + (n === 1 ? innerW / 2 : (i / (n - 1)) * innerW);
 
-      const seriesData = TREND_SERIES.map((s) => {
-        const raw = tweets.map(s.pick);
+      const seriesData = visibleDefs.map((s) => {
+        const raw = days.map((d) => d[s.id]);
         const max = Math.max(1, ...raw);
         const norm = raw.map((v) => v / max);
-        return { ...s, raw, max, norm };
+        const total = raw.reduce((a, b) => a + b, 0);
+        return { ...s, raw, max, norm, total };
       });
 
-      legend.innerHTML = seriesData.map((s) => {
-        const total = s.raw.reduce((a, b) => a + b, 0);
-        return `<span class="trend-chip"><i style="background:${s.color}"></i>${s.label} · Σ ${fmt(total)}</span>`;
+      legend.innerHTML = TREND_SERIES.map((s) => {
+        const total = trendState.cumulative && days.length
+          ? days[days.length - 1][s.id]
+          : days.reduce((sum, d) => sum + d[s.id], 0);
+        const totalLabel = trendState.cumulative ? "Stand" : "Σ";
+        const cls = [
+          "trend-chip",
+          trendState.activeSeries === s.id ? "active" : "",
+          trendState.activeSeries && trendState.activeSeries !== s.id ? "dim" : "",
+        ].filter(Boolean).join(" ");
+        return `<button type="button" class="${cls}" data-series="${s.id}" aria-pressed="${trendState.activeSeries === s.id}">
+          <i style="background:${s.color}"></i>${s.label} · ${totalLabel} ${fmt(total)}
+        </button>`;
       }).join("");
+
+      legend.querySelectorAll(".trend-chip").forEach((chip) => {
+        chip.onclick = () => {
+          const id = chip.dataset.series;
+          trendState.activeSeries = trendState.activeSeries === id ? null : id;
+          renderTrendChart();
+        };
+      });
 
       const gridLines = [0, 0.25, 0.5, 0.75, 1].map((g) => {
         const y = pad.t + innerH - g * innerH;
         return `<line class="trend-grid" x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}" />`;
       }).join("");
+
+      const yLabels = solo && seriesData[0]
+        ? [0, 0.5, 1].map((g) => {
+            const val = Math.round(seriesData[0].max * g);
+            const y = pad.t + innerH - g * innerH;
+            return `<text class="trend-axis" x="${pad.l - 8}" y="${y + 4}" text-anchor="end">${fmt(val)}</text>`;
+          }).join("")
+        : "";
 
       const paths = seriesData.map((s) => {
         const pts = s.norm.map((v, i) => `${xAt(i).toFixed(1)},${(pad.t + innerH - v * innerH).toFixed(1)}`);
@@ -1053,8 +1202,8 @@
         const areaD = pts.length === 1
           ? `M ${xAt(0).toFixed(1)},${pad.t + innerH} L ${pts[0]} L ${xAt(0).toFixed(1)},${pad.t + innerH} Z`
           : `M ${pad.l},${pad.t + innerH} L ${pts.join(" L ")} L ${(pad.l + innerW).toFixed(1)},${pad.t + innerH} Z`;
-        const area = s.id === "impressions"
-          ? `<path class="trend-area" d="${areaD}" fill="${s.color}" />` : "";
+        const showArea = solo || s.id === "impressions";
+        const area = showArea ? `<path class="trend-area" d="${areaD}" fill="${s.color}" />` : "";
         return `${area}<path class="trend-line anim" data-series="${s.id}" d="${d}" stroke="${s.color}" style="stroke-dasharray:1200;--path-len:1200" />`;
       }).join("");
 
@@ -1066,28 +1215,30 @@
         })
       ).join("");
 
-      const xLabels = tweets.map((t, i) => {
-        if (n > 12 && i % Math.ceil(n / 8) !== 0 && i !== n - 1) return "";
+      const xStep = n > 14 ? Math.ceil(n / 10) : n > 8 ? 2 : 1;
+      const xLabels = days.map((d, i) => {
+        if (i % xStep !== 0 && i !== n - 1) return "";
         const x = xAt(i);
-        const label = new Date(t.createdAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
-        return `<text class="trend-axis" x="${x.toFixed(1)}" y="${H - 12}" text-anchor="middle">${label}</text>`;
+        return `<text class="trend-axis" x="${x.toFixed(1)}" y="${H - 12}" text-anchor="middle">${trendDayLabel(d.date)}</text>`;
       }).join("");
 
-      svg.innerHTML = `${gridLines}${paths}${dots}${xLabels}`;
+      svg.innerHTML = `${gridLines}${yLabels}${paths}${dots}${xLabels}`;
 
       svg.querySelectorAll(".trend-dot").forEach((dot) => {
         dot.addEventListener("mouseenter", (e) => {
           const idx = +dot.dataset.idx;
-          const tw = tweets[idx];
-          const date = new Date(tw.createdAt).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-          const lines = TREND_SERIES.map((s) => {
-            const v = s.pick(tw);
+          const day = days[idx];
+          const lines = (trendState.activeSeries
+            ? TREND_SERIES.filter((s) => s.id === trendState.activeSeries)
+            : TREND_SERIES
+          ).map((s) => {
+            const v = day[s.id];
             const hi = dot.dataset.series === s.id ? "font-weight:800" : "";
             return `<span style="${hi};color:${s.color}">${s.label}: ${fmt(v)}</span>`;
           });
-          tooltip.innerHTML = `<strong>${date}</strong><br>${tw.text?.slice(0, 60) ?? tw.postId ?? ""}${tw.text?.length > 60 ? "…" : ""}<br>${lines.join("<br>")}`;
+          const cumHint = trendState.cumulative ? " (kumuliert)" : "";
+          tooltip.innerHTML = `<strong>${trendDayLabel(day.date)}</strong>${cumHint}<br>${day.postCount} Post(s)<br>${lines.join("<br>")}`;
           tooltip.classList.add("show");
-          const rect = svg.getBoundingClientRect();
           const wrap = svg.parentElement.getBoundingClientRect();
           tooltip.style.left = `${e.clientX - wrap.left}px`;
           tooltip.style.top = `${e.clientY - wrap.top}px`;
@@ -1199,6 +1350,18 @@
     document.getElementById("queuePrev").onclick = () => queueShift("prev");
     document.getElementById("queueNext").onclick = () => queueShift("next");
     document.getElementById("queueReset").onclick = () => queueShift("reset");
+    document.getElementById("trendRange").onchange = (e) => {
+      trendState.windowDays = e.target.value === "all" ? "all" : Number(e.target.value);
+      renderTrendChart();
+    };
+    document.getElementById("trendCumulative").onchange = (e) => {
+      trendState.cumulative = e.target.checked;
+      renderTrendChart();
+    };
+    document.getElementById("trendShowAll").onclick = () => {
+      trendState.activeSeries = null;
+      renderTrendChart();
+    };
     ["tweetFilter", "postFilter", "creativeFilter"].forEach((id) => {
       document.getElementById(id).oninput = () => {
         if (id === "tweetFilter") renderTweets();
