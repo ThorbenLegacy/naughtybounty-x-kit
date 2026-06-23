@@ -31,12 +31,13 @@ import {
   loadSchedule,
   loadState,
   nextIndex,
+  applyStateReconciliation,
   pickNextPost,
   postsRemainingToday,
   publishTweet,
   recordPost,
+  postMediaMeta,
   recordPostFailure,
-  resetDayIfNeeded,
   resolveImagePath,
   saveState,
   todayInTimezone,
@@ -90,7 +91,7 @@ async function main(): Promise<void> {
 
   const today = todayInTimezone(schedule.timezone);
   const slot = currentSlot(schedule.timezone);
-  let state = resetDayIfNeeded(loadState(), today);
+  let state = applyStateReconciliation(loadState(), posts, today);
 
   if (!force && !preview && !canPostToday(state, schedule, today)) {
     console.log(
@@ -107,7 +108,7 @@ async function main(): Promise<void> {
   }
 
   const post = selected?.post ?? pickNextPost(posts, state);
-  const index = selected?.index ?? nextIndex(state, posts.length);
+  const index = selected?.index ?? nextIndex(state, posts.length, posts);
   const text = buildTweetText(post, link);
   const imagePath = noImage ? null : resolveImagePath(post);
 
@@ -171,7 +172,7 @@ async function main(): Promise<void> {
     console.log(`\nGepostet: https://x.com/i/web/status/${tweetId}`);
 
     if (!noAdvance) {
-      saveState(recordPost(state, today, index, post.id, tweetId, slot));
+      saveState(recordPost(state, today, index, post.id, tweetId, slot, postMediaMeta(post)));
     } else {
       console.log("(State nicht aktualisiert — --no-advance)");
     }

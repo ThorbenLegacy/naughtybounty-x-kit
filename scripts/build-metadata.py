@@ -204,9 +204,9 @@ def post_entry(p: dict, source: str, extra: dict | None = None) -> dict:
         "keywords": hashtags + keywords_from(text),
         "hashtags": hashtags,
         "ctaUrl": p.get("link"),
-        "image": p.get("image"),
+        "image": extra.get("image") or p.get("image"),
         "colorScheme": extra.get("colorScheme") or p.get("colorScheme"),
-        "hasImage": bool(p.get("image")),
+        "hasImage": bool(extra.get("image") or p.get("image")),
         "charCount": len(text),
         "status": extra.get("status", "planned"),
         "tweetId": extra.get("tweetId"),
@@ -228,6 +228,11 @@ def load_posts(creatives_by_key: dict[str, dict]) -> list[dict]:
         if p["id"] in history_by_post:
             extra["status"] = "posted"
             extra["date"] = history_by_post[p["id"]].get("date")
+            hist = history_by_post[p["id"]]
+            if hist.get("image"):
+                extra["image"] = hist["image"]
+            if hist.get("colorScheme"):
+                extra["colorScheme"] = hist["colorScheme"]
         posts.append(post_entry(p, "posts.json", extra))
 
     if (ROOT / "posts-week.json").exists():
@@ -249,12 +254,16 @@ def load_posts(creatives_by_key: dict[str, dict]) -> list[dict]:
                 "audience": meta.get("audience"),
                 "theme": meta.get("theme"),
                 "creative": meta.get("creative"),
-                "colorScheme": meta.get("colorScheme") or p.get("colorScheme"),
+                "colorScheme": (hist.get("colorScheme") if hist else None)
+                or meta.get("colorScheme")
+                or p.get("colorScheme"),
                 "date": meta.get("date"),
                 "time": meta.get("time"),
                 "status": "posted" if hist else meta.get("status", "planned"),
                 "tweetId": hist.get("tweetId") if hist else None,
             }
+            if hist and hist.get("image"):
+                extra["image"] = hist["image"]
             posts.append(post_entry(p, "posts-week.json", extra))
 
     for post in posts:

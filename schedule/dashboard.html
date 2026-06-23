@@ -391,6 +391,7 @@
 
         <div class="card card-muted">
           <div class="card-label" id="last-card-label">Letzter Post</div>
+          <div class="preview-block" id="last-preview" hidden></div>
           <p class="sub" id="last-meta" style="margin-top:8px">—</p>
           <p class="notes" style="margin-top:16px">Scheduler: <code>npm run x:schedule</code><br>Aktualisierung alle 5s</p>
         </div>
@@ -532,7 +533,11 @@
         const previewEl = document.getElementById("next-preview");
         if (data.nextPost.image) {
           previewEl.hidden = false;
-          previewEl.innerHTML = previewButton({ image: data.nextPost.image, header: data.nextPost.id }, true);
+          previewEl.innerHTML = previewButton({
+            image: data.nextPost.image,
+            colorScheme: data.nextPost.colorScheme,
+            header: data.nextPost.id,
+          }, true);
         } else {
           previewEl.hidden = true;
           previewEl.innerHTML = "";
@@ -543,6 +548,8 @@
         const lastLabel = document.getElementById("last-card-label");
         if (fail) {
           lastLabel.textContent = "Letzter Fehler";
+          document.getElementById("last-preview").hidden = true;
+          document.getElementById("last-preview").innerHTML = "";
           const idx = fail.index != null ? ` · Post ${fail.index + 1}` : "";
           lastEl.innerHTML =
             `<strong style="color:var(--err)">${fail.postId}</strong>${idx}<br>` +
@@ -551,9 +558,23 @@
             `${fail.code ? `[${fail.code}] ` : ""}${fail.message}</code>`;
         } else if (!last) {
           lastLabel.textContent = "Letzter Post";
+          document.getElementById("last-preview").hidden = true;
+          document.getElementById("last-preview").innerHTML = "";
           lastEl.textContent = "Noch keiner";
         } else {
           lastLabel.textContent = "Letzter Post";
+          const lastPreview = document.getElementById("last-preview");
+          if (last.image) {
+            lastPreview.hidden = false;
+            lastPreview.innerHTML = previewButton({
+              image: last.image,
+              colorScheme: last.colorScheme,
+              header: last.postId,
+            }, true);
+          } else {
+            lastPreview.hidden = true;
+            lastPreview.innerHTML = "";
+          }
           lastEl.innerHTML = last.url
             ? `<a href="${last.url}" target="_blank" rel="noopener">${last.postId}</a> · ${last.date} ${last.slot || ""}`
             : `${last.postId} · ${last.date}`;
@@ -575,16 +596,25 @@
         || String(src || "").includes("/exports-light/");
     }
 
+    function effectiveColorScheme(row) {
+      if (row.colorScheme === "light" || row.colorScheme === "dark") return row.colorScheme;
+      const img = String(row.image || row.imageLight || "");
+      if (img.includes("exports-light")) return "light";
+      return "dark";
+    }
+
     function imageSrc(row) {
-      const field = row.colorScheme === "light" && row.imageLight
-        ? row.imageLight
-        : row.image;
-      if (field) {
-        const p = String(field).replace(/\\/g, "/");
+      if (row.image) {
+        const p = String(row.image).replace(/\\/g, "/");
+        return p.startsWith("/") ? p : `/${p}`;
+      }
+      const scheme = effectiveColorScheme(row);
+      if (scheme === "light" && row.imageLight) {
+        const p = String(row.imageLight).replace(/\\/g, "/");
         return p.startsWith("/") ? p : `/${p}`;
       }
       if (row.creativePath) {
-        const prefix = row.colorScheme === "light" ? "exports-light" : "exports";
+        const prefix = scheme === "light" ? "exports-light" : "exports";
         return `/${prefix}/${String(row.creativePath).replace(/\\/g, "/")}.png`;
       }
       return null;

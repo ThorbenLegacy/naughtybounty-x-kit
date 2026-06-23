@@ -30,17 +30,19 @@ config({ path: resolve(KIT_ROOT, ".env") });
 import {
   buildTweetText,
   currentSlot,
+  findPostById,
   loadPosts,
   loadSchedule,
   loadState,
+  applyStateReconciliation,
   pickNextPost,
+  postMediaMeta,
   postsRemainingToday,
-  resetDayIfNeeded,
   todayInTimezone,
   xCredentialsHint,
   createXClientFresh,
 } from "./lib/content";
-import { fetchAnalytics, loadAnalytics } from "./lib/analytics";
+import { fetchAnalytics, loadAnalytics, type AnalyticsData } from "./lib/analytics";
 import {
   authEnabled,
   clearSessionCookie,
@@ -59,6 +61,71 @@ let refreshInFlight = false;
 function readJson(path: string): unknown {
   if (!existsSync(path)) return { error: "Datei fehlt — bitte Metadaten neu bauen." };
   return JSON.parse(readFileSync(path, "utf-8"));
+}
+
+type CatalogPost = {
+  id: string;
+  image?: string;
+  colorScheme?: string;
+  status?: string;
+  tweetId?: string | null;
+  [key: string]: unknown;
+};
+
+function loadEnrichedCatalog(): unknown {
+  const raw = readJson(CATALOG_PATH) as { posts?: CatalogPost[]; [key: string]: unknown };
+  if (!raw.posts?.length) return raw;
+
+  const useWeek = existsSync(resolve(KIT_ROOT, "posts-week.json"));
+  const { posts: livePosts } = loadPosts({ week: useWeek });
+  const liveById = new Map(livePosts.map((p) => [p.id, p]));
+  const historyByPost = new Map(loadState().history.map((h) => [h.postId, h]));
+
+  raw.posts = raw.posts.map((entry) => {
+    const live = liveById.get(entry.id);
+    const hist = historyByPost.get(entry.id);
+    const image = hist?.image ?? live?.image ?? entry.image;
+    const colorScheme =
+      hist?.colorScheme ??
+      live?.colorScheme ??
+      (typeof image === "string" && image.includes("exports-light") ? "light" : entry.colorScheme);
+    return {
+      ...entry,
+      ...(image ? { image } : {}),
+      ...(colorScheme ? { colorScheme } : {}),
+      status: hist ? "posted" : entry.status,
+      tweetId: hist?.tweetId ?? entry.tweetId ?? null,
+    };
+  });
+  return raw;
+}
+
+function enrichAnalytics(data: AnalyticsData | Record<string, unknown>): AnalyticsData | Record<string, unknown> {
+  const tweets = (data as AnalyticsData).tweets;
+  if (!tweets?.length) return data;
+
+  const useWeek = existsSync(resolve(KIT_ROOT, "posts-week.json"));
+  const { posts: livePosts } = loadPosts({ week: useWeek });
+  const liveById = new Map(livePosts.map((p) => [p.id, p]));
+  const historyByTweet = new Map(
+    loadState().history.filter((h) => h.tweetId).map((h) => [h.tweetId!, h]),
+  );
+
+  (data as AnalyticsData).tweets = tweets.map((tweet) => {
+    if (tweet.image) return tweet;
+    const linked = tweet.linkedPostId;
+    if (!linked) return tweet;
+    const hist = historyByTweet.get(tweet.tweetId);
+    const live = liveById.get(linked);
+    const image = hist?.image ?? live?.image ?? null;
+    if (!image) return tweet;
+    const colorScheme =
+      hist?.colorScheme ??
+      live?.colorScheme ??
+      (image.includes("exports-light") ? "light" : "dark");
+    return { ...tweet, image, colorScheme };
+  });
+  return data;
 }
 
 function rebuildCatalog(): unknown {
@@ -130,15 +197,51 @@ function nextScheduledSlot(
   };
 }
 
+function mergeHistoryFromAnalytics(state: PostState, posts: PostEntry[]): PostState {
+  const analytics = loadAnalytics();
+  if (!analytics?.tweets?.length) return state;
+
+  const knownTweetIds = new Set(
+    state.history.map((h) => h.tweetId).filter((id): id is string => Boolean(id)),
+  );
+  const knownPosts = new Set(
+    state.history.filter((h) => h.tweetId).map((h) => h.postId),
+  );
+  const history = [...state.history];
+  let added = false;
+
+  for (const t of analytics.tweets) {
+    if (!t.linkedPostId || !t.tweetId || knownTweetIds.has(t.tweetId)) continue;
+    if (knownPosts.has(t.linkedPostId)) continue;
+    if (posts.findIndex((p) => p.id === t.linkedPostId) < 0) continue;
+    const date = t.createdAt?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
+    history.push({
+      date,
+      postId: t.linkedPostId,
+      tweetId: t.tweetId,
+      ...(t.image ? { image: String(t.image).replace(/^\//, "") } : {}),
+      ...(t.colorScheme === "light" || t.colorScheme === "dark"
+        ? { colorScheme: t.colorScheme }
+        : {}),
+    });
+    knownTweetIds.add(t.tweetId);
+    knownPosts.add(t.linkedPostId);
+    added = true;
+  }
+
+  return added ? { ...state, history } : state;
+}
+
 function buildStatus() {
   const schedule = loadSchedule();
   const useWeek = existsSync(resolve(KIT_ROOT, "posts-week.json"));
   const { link, posts, account } = loadPosts({ week: useWeek });
   const today = todayInTimezone(schedule.timezone);
   const nowTime = currentSlot(schedule.timezone);
-  const state = resetDayIfNeeded(loadState(), today);
+  const merged = mergeHistoryFromAnalytics(loadState(), posts);
+  const state = applyStateReconciliation(merged, posts, today);
   const nextPost = pickNextPost(posts, state);
-  const nextIndex = (state.lastIndex + 1) % posts.length;
+  const nextIdx = nextIndex(state, posts.length, posts);
   const remaining = postsRemainingToday(state, schedule, today);
   const next = nextScheduledSlot(
     schedule.slots,
@@ -148,6 +251,20 @@ function buildStatus() {
     schedule.timezone,
   );
   const lastHistory = state.history[state.history.length - 1];
+  const nextMedia = postMediaMeta(nextPost);
+  const lastResolved = lastHistory
+    ? findPostById(posts, lastHistory.postId)?.post
+    : null;
+  const lastMedia = lastHistory?.image
+    ? {
+        image: lastHistory.image,
+        colorScheme:
+          lastHistory.colorScheme ??
+          (lastHistory.image.includes("exports-light") ? "light" : "dark"),
+      }
+    : lastResolved
+      ? postMediaMeta(lastResolved)
+      : { image: undefined, colorScheme: undefined };
 
   return {
     account,
@@ -173,10 +290,11 @@ function buildStatus() {
     },
     nextPost: {
       id: nextPost.id,
-      index: nextIndex + 1,
+      index: nextIdx + 1,
       total: posts.length,
       text: buildTweetText(nextPost, link),
-      image: nextPost.image ?? null,
+      image: nextMedia.image ?? nextPost.image ?? null,
+      colorScheme: nextMedia.colorScheme ?? nextPost.colorScheme ?? null,
     },
     lastPost: lastHistory
       ? {
@@ -187,6 +305,8 @@ function buildStatus() {
           url: lastHistory.tweetId
             ? `https://x.com/i/web/status/${lastHistory.tweetId}`
             : null,
+          image: lastMedia.image ?? null,
+          colorScheme: lastMedia.colorScheme ?? null,
         }
       : null,
     lastFailure: state.lastFailure
@@ -424,12 +544,20 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.method === "GET" && url.pathname === "/api/catalog") {
-    sendJson(res, readJson(CATALOG_PATH));
+    sendJson(res, loadEnrichedCatalog());
     return;
   }
 
   if (req.method === "GET" && url.pathname === "/api/analytics") {
-    sendJson(res, loadAnalytics() ?? { fetchedAt: null, tweets: [], totals: {}, account: null, errors: [], notes: [] });
+    const base = loadAnalytics() ?? {
+      fetchedAt: null,
+      tweets: [],
+      totals: {},
+      account: null,
+      errors: [],
+      notes: [],
+    };
+    sendJson(res, enrichAnalytics(base as AnalyticsData));
     return;
   }
 

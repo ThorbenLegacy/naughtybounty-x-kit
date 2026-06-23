@@ -77,6 +77,34 @@ export function resetDayIfNeeded(state: PostState, today: string): PostState {
   };
 }
 
+/** Höchster Post-Index laut erfolgreicher Historie (tweetId gesetzt). */
+export function effectiveLastIndex(state: PostState, posts: PostEntry[]): number {
+  let maxIdx = state.lastIndex;
+  for (const h of state.history) {
+    if (!h.tweetId) continue;
+    const found = posts.findIndex((p) => p.id === h.postId);
+    if (found >= 0) maxIdx = Math.max(maxIdx, found);
+  }
+  return maxIdx;
+}
+
+/** State mit Historie und Tages-Slots abgleichen (Dashboard + Scheduler). */
+export function applyStateReconciliation(
+  state: PostState,
+  posts: PostEntry[],
+  today: string,
+): PostState {
+  const base = resetDayIfNeeded(state, today);
+  const lastIndex = effectiveLastIndex(base, posts);
+  const todaySuccess = base.history.filter((h) => h.date === today && h.tweetId);
+  const postedSlots = [...base.postedSlots];
+  for (const h of todaySuccess) {
+    if (h.slot && !postedSlots.includes(h.slot)) postedSlots.push(h.slot);
+  }
+  const postsToday = Math.max(base.postsToday, todaySuccess.length);
+  return { ...base, lastIndex, postsToday, postedSlots };
+}
+
 export function canPostToday(
   state: PostState,
   schedule: ScheduleConfig,
@@ -98,12 +126,14 @@ export function postsRemainingToday(
 }
 
 export function pickNextPost(posts: PostEntry[], state: PostState): PostEntry {
-  const idx = (state.lastIndex + 1) % posts.length;
+  const lastIdx = effectiveLastIndex(state, posts);
+  const idx = (lastIdx + 1) % posts.length;
   return posts[idx]!;
 }
 
-export function nextIndex(state: PostState, total: number): number {
-  return (state.lastIndex + 1) % total;
+export function nextIndex(state: PostState, total: number, posts?: PostEntry[]): number {
+  const lastIdx = posts ? effectiveLastIndex(state, posts) : state.lastIndex;
+  return (lastIdx + 1) % total;
 }
 
 export function findPostById(posts: PostEntry[], id: string): { post: PostEntry; index: number } | null {
@@ -451,6 +481,7 @@ export function recordPost(
   postId: string,
   tweetId?: string,
   slot?: string,
+  media?: { image?: string; colorScheme?: "dark" | "light" },
 ): PostState {
   const base = resetDayIfNeeded(state, today);
   const postedSlots = slot && !base.postedSlots.includes(slot)
@@ -465,9 +496,25 @@ export function recordPost(
     failures: base.failures ?? [],
     history: [
       ...base.history.slice(-180),
-      { date: today, postId, tweetId, slot },
+      {
+        date: today,
+        postId,
+        tweetId,
+        slot,
+        ...(media?.image ? { image: media.image } : {}),
+        ...(media?.colorScheme ? { colorScheme: media.colorScheme } : {}),
+      },
     ],
   };
+}
+
+/** Bild + Look aus Post-Eintrag (tatsächlich gepostetes Creative). */
+export function postMediaMeta(post: PostEntry): { image?: string; colorScheme?: "dark" | "light" } {
+  const image = post.image?.replace(/\\/g, "/");
+  if (!image) return {};
+  const colorScheme =
+    post.colorScheme ?? (image.includes("exports-light") ? "light" : "dark");
+  return { image, colorScheme };
 }
 
 export function recordPostFailure(

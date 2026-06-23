@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TwitterApi, ApiResponseError } from "twitter-api-v2";
-import { createXClientFresh, loadState } from "./content";
+import { createXClientFresh, loadPosts, loadState, postMediaMeta } from "./content";
 
 const BOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const KIT_ROOT = resolve(BOT_DIR, "..");
@@ -41,6 +41,8 @@ export interface TweetMetrics {
   matchSource: "history" | "text" | null;
   engagementRate: number | null;
   creativePath: string | null;
+  image: string | null;
+  colorScheme: "dark" | "light" | null;
 }
 
 export interface AnalyticsData {
@@ -70,12 +72,66 @@ export interface AnalyticsData {
   notes: string[];
 }
 
-function loadCatalogPosts(): Array<{ id: string; description: string; creativePath?: string }> {
+function loadCatalogPosts(): Array<{
+  id: string;
+  description: string;
+  creativePath?: string;
+  image?: string;
+  colorScheme?: string;
+}> {
   if (!existsSync(CATALOG_PATH)) return [];
   const catalog = JSON.parse(readFileSync(CATALOG_PATH, "utf-8")) as {
-    posts: Array<{ id: string; description: string; creativePath?: string }>;
+    posts: Array<{
+      id: string;
+      description: string;
+      creativePath?: string;
+      image?: string;
+      colorScheme?: string;
+    }>;
   };
   return catalog.posts ?? [];
+}
+
+function livePostsById(): Map<string, ReturnType<typeof loadPosts>["posts"][number]> {
+  const weekPath = resolve(KIT_ROOT, "posts-week.json");
+  const useWeek = existsSync(weekPath);
+  const { posts } = loadPosts({ week: useWeek });
+  return new Map(posts.map((p) => [p.id, p]));
+}
+
+function resolveLinkedPostMedia(
+  linkedPostId: string,
+  tweetId: string,
+  catalogPosts: ReturnType<typeof loadCatalogPosts>,
+  liveById: Map<string, ReturnType<typeof loadPosts>["posts"][number]>,
+): { image: string | null; colorScheme: "dark" | "light" | null; creativePath: string | null } {
+  const hist = loadState().history.find(
+    (h) => h.postId === linkedPostId && (!h.tweetId || h.tweetId === tweetId),
+  );
+  const live = liveById.get(linkedPostId);
+  const catalog = catalogPosts.find((p) => p.id === linkedPostId);
+  const media = hist?.image
+    ? {
+        image: hist.image,
+        colorScheme:
+          (hist.colorScheme as "dark" | "light" | undefined) ??
+          (hist.image.includes("exports-light") ? "light" : "dark"),
+      }
+    : live
+      ? postMediaMeta(live)
+      : catalog?.image
+        ? postMediaMeta({
+            id: linkedPostId,
+            text: "",
+            image: catalog.image,
+            colorScheme: catalog.colorScheme as "dark" | "light" | undefined,
+          })
+        : {};
+  return {
+    image: media.image ?? null,
+    colorScheme: media.colorScheme ?? null,
+    creativePath: catalog?.creativePath ?? null,
+  };
 }
 
 function historyMap(): Map<string, { postId: string; date?: string }> {
@@ -150,7 +206,8 @@ function mapTweet(
     };
   },
   hist: Map<string, { postId: string }>,
-  posts: Array<{ id: string; description: string; creativePath?: string }>,
+  posts: ReturnType<typeof loadCatalogPosts>,
+  liveById: ReturnType<typeof livePostsById>,
 ): TweetMetrics {
   const pm = raw.public_metrics ?? {};
   const om = raw.organic_metrics;
@@ -158,6 +215,8 @@ function mapTweet(
   let linkedPostId: string | null = hist.get(raw.id)?.postId ?? null;
   let matchSource: TweetMetrics["matchSource"] = linkedPostId ? "history" : null;
   let creativePath: string | null = null;
+  let image: string | null = null;
+  let colorScheme: "dark" | "light" | null = null;
 
   if (!linkedPostId && raw.text) {
     const matched = matchPostByText(raw.text, posts);
@@ -169,6 +228,13 @@ function mapTweet(
   } else if (linkedPostId) {
     const post = posts.find((p) => p.id === linkedPostId);
     creativePath = post?.creativePath ?? null;
+  }
+
+  if (linkedPostId) {
+    const media = resolveLinkedPostMedia(linkedPostId, raw.id, posts, liveById);
+    image = media.image;
+    colorScheme = media.colorScheme;
+    creativePath = creativePath ?? media.creativePath;
   }
 
   const entry: TweetMetrics = {
@@ -207,6 +273,8 @@ function mapTweet(
     matchSource,
     engagementRate: null,
     creativePath,
+    image,
+    colorScheme,
   };
   entry.engagementRate = engagementRate(entry);
   return entry;
@@ -263,6 +331,7 @@ export async function fetchAnalytics(): Promise<AnalyticsData> {
 
   const hist = historyMap();
   const posts = loadCatalogPosts();
+  const liveById = livePostsById();
   const tweetFields = [
     "created_at",
     "public_metrics",
@@ -307,7 +376,7 @@ export async function fetchAnalytics(): Promise<AnalyticsData> {
         "tweet.fields": [...tweetFields],
       });
       for await (const tweet of timeline) {
-        if (tweet.id) seen.set(tweet.id, mapTweet(tweet, hist, posts));
+        if (tweet.id) seen.set(tweet.id, mapTweet(tweet, hist, posts, liveById));
       }
     } catch (e) {
       errors.push(`Timeline: ${formatApiError(e)}`);
@@ -321,7 +390,7 @@ export async function fetchAnalytics(): Promise<AnalyticsData> {
       try {
         const lookup = await client.v2.tweets(batch, { "tweet.fields": [...tweetFields] });
         for (const tweet of lookup.data ?? []) {
-          seen.set(tweet.id, mapTweet(tweet, hist, posts));
+          seen.set(tweet.id, mapTweet(tweet, hist, posts, liveById));
         }
       } catch (e) {
         errors.push(`Lookup ${batch.join(",")}: ${formatApiError(e)}`);

@@ -20,9 +20,10 @@ import {
   canPostToday,
   createXClientFresh,
   currentSlot,
+  loadPosts,
   loadSchedule,
   loadState,
-  resetDayIfNeeded,
+  applyStateReconciliation,
   todayInTimezone,
   xCredentialsDiagnostic,
 } from "./lib/content";
@@ -68,7 +69,9 @@ async function tick(): Promise<void> {
   const schedule = loadSchedule();
   const today = todayInTimezone(schedule.timezone);
   const now = currentSlot(schedule.timezone);
-  const state = resetDayIfNeeded(loadState(), today);
+  const useWeek = process.argv.includes("--week") || existsSync(POSTS_WEEK);
+  const { posts } = loadPosts({ week: useWeek });
+  const state = applyStateReconciliation(loadState(), posts, today);
 
   const matchedSlot = schedule.slots.find((s) => slotMatches(s, now));
   if (!matchedSlot) return;

@@ -26,6 +26,9 @@ export type PostHistoryEntry = {
   postId: string;
   tweetId?: string;
   slot?: string;
+  /** Relativer Pfad des geposteten Bildes (exports/… oder exports-light/…) */
+  image?: string;
+  colorScheme?: "dark" | "light";
 };
 
 export type PostFailureEntry = {
