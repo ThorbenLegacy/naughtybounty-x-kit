@@ -48,6 +48,8 @@ export type PostState = {
   todayDate: string | null;
   postsToday: number;
   postedSlots: string[];
+  /** Manuell gewählter Post-Index; null = automatisch nach Historie */
+  queueIndex?: number | null;
   history: PostHistoryEntry[];
   /** Letzter fehlgeschlagener Post-Versuch (bis zum nächsten Erfolg) */
   lastFailure?: PostFailureEntry | null;

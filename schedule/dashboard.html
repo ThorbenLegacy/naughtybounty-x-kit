@@ -373,6 +373,26 @@
       display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
       margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
     }
+    .queue-nav {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .queue-nav .btn { padding: 8px 12px; min-width: 40px; }
+    .queue-pos {
+      font-size: 0.85rem; font-weight: 800; color: var(--fg);
+      min-width: 72px; text-align: center;
+    }
+    .queue-mode {
+      font-size: 0.72rem; font-weight: 700; color: var(--muted);
+      padding: 4px 10px; border-radius: 999px; background: var(--card-muted);
+    }
+    .queue-mode.manual { color: var(--primary); background: rgba(117,17,189,.08); }
+    .posted-badge {
+      display: inline-block; margin-top: 8px;
+      font-size: 0.72rem; font-weight: 800; color: var(--warn);
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(217,119,6,.1); border: 1px solid rgba(217,119,6,.25);
+    }
   </style>
 </head>
 <body>
@@ -441,7 +461,15 @@
             <div class="card-label">Nächster Post</div>
             <span class="id" id="next-id"></span>
           </div>
+          <div class="queue-nav">
+            <button class="btn secondary" id="queuePrev" type="button" title="Vorheriger Post">◀</button>
+            <span class="queue-pos" id="queue-pos">—</span>
+            <button class="btn secondary" id="queueNext" type="button" title="Nächster Post">▶</button>
+            <button class="btn secondary" id="queueReset" type="button" title="Automatisch (nach Historie)">Auto</button>
+            <span class="queue-mode" id="queue-mode">Auto</span>
+          </div>
           <p class="sub" id="next-index" style="margin-top:6px"></p>
+          <span class="posted-badge" id="next-posted-badge" hidden>Bereits auf X gepostet</span>
           <div class="preview-block" id="next-preview" hidden></div>
           <div class="tweet" id="next-text"></div>
         </div>
@@ -538,6 +566,7 @@
     /* ── Scheduler ── */
     let targetAt = Date.now();
     let targetLabel = "";
+    let selectedPostId = null;
 
     function pad(n) { return String(n).padStart(2, "0"); }
     const dt = (s) => (s ? new Date(s).toLocaleString("de-DE") : "—");
@@ -564,10 +593,69 @@
         el.appendChild(span);
       }
     }
+    async function queueShift(action) {
+      try {
+        const res = await fetch("/api/queue", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Fehler ${res.status}`);
+        applyStatusData(data);
+      } catch (e) {
+        document.getElementById("postNowStatus").textContent = e.message;
+        document.getElementById("postNowStatus").className = "status err";
+      }
+    }
+
+    function applyStatusData(data) {
+      selectedPostId = data.nextPost?.id ?? null;
+      document.getElementById("next-id").textContent = data.nextPost.id;
+      document.getElementById("queue-pos").textContent =
+        `${data.nextPost.index}/${data.nextPost.total}`;
+      const modeEl = document.getElementById("queue-mode");
+      if (data.nextPost.queueManual) {
+        modeEl.textContent = "Manuell";
+        modeEl.classList.add("manual");
+      } else {
+        modeEl.textContent = `Auto (#${data.nextPost.autoIndex})`;
+        modeEl.classList.remove("manual");
+      }
+      document.getElementById("next-index").textContent =
+        `${data.postsSource} · ${data.historyCount ?? 0} in Historie gespeichert`;
+      const postedBadge = document.getElementById("next-posted-badge");
+      if (data.nextPost.alreadyPosted) {
+        postedBadge.hidden = false;
+      } else {
+        postedBadge.hidden = true;
+      }
+      const previewEl = document.getElementById("next-preview");
+      if (data.nextPost.image) {
+        previewEl.hidden = false;
+        previewEl.innerHTML = previewButton({
+          image: data.nextPost.image,
+          colorScheme: data.nextPost.colorScheme,
+          header: data.nextPost.id,
+        }, true);
+      } else {
+        previewEl.hidden = true;
+        previewEl.innerHTML = "";
+      }
+      document.getElementById("next-text").textContent = data.nextPost.text;
+    }
+
     async function postNow() {
       const btn = document.getElementById("postNowBtn");
       const status = document.getElementById("postNowStatus");
-      if (!confirm("Nächsten Post in der Warteschlange jetzt auf X veröffentlichen?")) return;
+      const postId = selectedPostId;
+      let msg = "Ausgewählten Post jetzt auf X veröffentlichen?";
+      const badge = document.getElementById("next-posted-badge");
+      if (!badge.hidden) {
+        msg = "Dieser Post ist bereits in der Historie — trotzdem erneut posten?";
+      }
+      if (!confirm(msg)) return;
       btn.disabled = true;
       status.textContent = "Poste …";
       status.className = "status";
@@ -576,7 +664,7 @@
           method: "POST",
           credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
-          body: "{}",
+          body: JSON.stringify({ postId }),
         });
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error(data.error || `Fehler ${res.status}`);
@@ -630,22 +718,7 @@
           warn.hidden = false;
           warn.textContent = "Verpasste Slots werden nicht nachgeholt.";
         } else { warn.hidden = true; }
-        document.getElementById("next-id").textContent = data.nextPost.id;
-        document.getElementById("next-index").textContent =
-          `Post ${data.nextPost.index}/${data.nextPost.total} · ${data.postsSource}`;
-        const previewEl = document.getElementById("next-preview");
-        if (data.nextPost.image) {
-          previewEl.hidden = false;
-          previewEl.innerHTML = previewButton({
-            image: data.nextPost.image,
-            colorScheme: data.nextPost.colorScheme,
-            header: data.nextPost.id,
-          }, true);
-        } else {
-          previewEl.hidden = true;
-          previewEl.innerHTML = "";
-        }
-        document.getElementById("next-text").textContent = data.nextPost.text;
+        applyStatusData(data);
         const last = data.lastPost;
         const lastEl = document.getElementById("last-meta");
         const lastLabel = document.getElementById("last-card-label");
@@ -1123,6 +1196,9 @@
     document.getElementById("refreshBtn").onclick = refreshAnalytics;
     document.getElementById("rebuildBtn").onclick = rebuildCatalog;
     document.getElementById("postNowBtn").onclick = postNow;
+    document.getElementById("queuePrev").onclick = () => queueShift("prev");
+    document.getElementById("queueNext").onclick = () => queueShift("next");
+    document.getElementById("queueReset").onclick = () => queueShift("reset");
     ["tweetFilter", "postFilter", "creativeFilter"].forEach((id) => {
       document.getElementById(id).oninput = () => {
         if (id === "tweetFilter") renderTweets();

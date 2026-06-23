@@ -13,8 +13,8 @@ import {
   loadPosts,
   loadSchedule,
   loadState,
-  nextIndex,
   pickNextPost,
+  resolveQueueIndex,
   postMediaMeta,
   publishTweet,
   recordPost,
@@ -81,7 +81,7 @@ export async function runNextPost(options: RunPostOptions = {}): Promise<RunPost
   }
 
   const post = selected?.post ?? pickNextPost(posts, state);
-  const index = selected?.index ?? nextIndex(state, posts.length, posts);
+  const index = selected?.index ?? resolveQueueIndex(state, posts);
   const text = buildTweetText(post, link);
   const imagePath = resolveImagePath(post);
 

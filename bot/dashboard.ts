@@ -35,10 +35,16 @@ import {
   loadSchedule,
   loadState,
   applyStateReconciliation,
-  nextIndex,
-  pickNextPost,
+  autoNextIndex,
   postMediaMeta,
   postsRemainingToday,
+  publishedPostIds,
+  isPostPublished,
+  resolveQueueIndex,
+  resetQueue,
+  saveState,
+  shiftQueue,
+  setQueueByPostId,
   todayInTimezone,
   xCredentialsHint,
   createXClientFresh,
@@ -244,11 +250,23 @@ function buildStatus() {
   const { link, posts, account } = loadPosts({ week: useWeek });
   const today = todayInTimezone(schedule.timezone);
   const nowTime = currentSlot(schedule.timezone);
-  const merged = mergeHistoryFromAnalytics(loadState(), posts);
-  const state = applyStateReconciliation(merged, posts, today);
-  const nextPost = pickNextPost(posts, state);
-  const nextIdx = nextIndex(state, posts.length, posts);
+  const raw = mergeHistoryFromAnalytics(loadState(), posts);
+  const reconciled = applyStateReconciliation(raw, posts, today);
+  const state = { ...reconciled, queueIndex: raw.queueIndex ?? null };
+
+  if (
+    state.lastIndex !== raw.lastIndex ||
+    state.postsToday !== raw.postsToday ||
+    JSON.stringify(state.postedSlots) !== JSON.stringify(raw.postedSlots)
+  ) {
+    saveState(state);
+  }
+
+  const queueIdx = resolveQueueIndex(state, posts);
+  const nextPost = posts[queueIdx]!;
+  const nextIdx = queueIdx;
   const remaining = postsRemainingToday(state, schedule, today);
+  const postedIds = publishedPostIds(state);
   const next = nextScheduledSlot(
     schedule.slots,
     state.postedSlots,
@@ -297,11 +315,17 @@ function buildStatus() {
     nextPost: {
       id: nextPost.id,
       index: nextIdx + 1,
+      queueIndex: queueIdx,
       total: posts.length,
       text: buildTweetText(nextPost, link),
       image: nextMedia.image ?? nextPost.image ?? null,
       colorScheme: nextMedia.colorScheme ?? nextPost.colorScheme ?? null,
+      alreadyPosted: isPostPublished(state, nextPost.id),
+      queueManual: state.queueIndex != null,
+      autoIndex: autoNextIndex(state, posts) + 1,
     },
+    postedPostIds: postedIds,
+    historyCount: state.history.filter((h) => h.tweetId).length,
     lastPost: lastHistory
       ? {
           date: lastHistory.date,
@@ -598,9 +622,12 @@ const server = createServer(async (req, res) => {
   if (req.method === "POST" && url.pathname === "/api/post/now") {
     const raw = await readBody(req);
     let force = false;
+    let postId: string | undefined;
     if (raw.trim()) {
       try {
-        force = JSON.parse(raw).force === true;
+        const body = JSON.parse(raw) as { force?: boolean; postId?: string };
+        force = body.force === true;
+        postId = typeof body.postId === "string" ? body.postId : undefined;
       } catch {
         /* ignore */
       }
@@ -611,13 +638,53 @@ const server = createServer(async (req, res) => {
     }
     postInFlight = true;
     try {
-      const result = await runNextPost({ force, week: existsSync(POSTS_WEEK_PATH) });
+      const result = await runNextPost({ force, postId, week: existsSync(POSTS_WEEK_PATH) });
       sendJson(res, result, result.ok ? 200 : 500);
     } catch (e) {
       sendJson(res, { ok: false, error: String(e) }, 500);
     } finally {
       postInFlight = false;
     }
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/queue") {
+    const raw = await readBody(req);
+    let action = "next";
+    let postId: string | undefined;
+    try {
+      const body = JSON.parse(raw || "{}") as { action?: string; postId?: string };
+      action = body.action ?? "next";
+      postId = typeof body.postId === "string" ? body.postId : undefined;
+    } catch {
+      sendJson(res, { error: "Ungültiger JSON-Body" }, 400);
+      return;
+    }
+
+    const useWeek = existsSync(POSTS_WEEK_PATH);
+    const { posts } = loadPosts({ week: useWeek });
+    let state = applyStateReconciliation(loadState(), posts, todayInTimezone(loadSchedule().timezone));
+
+    if (action === "reset") {
+      state = resetQueue(state);
+    } else if (action === "prev") {
+      state = shiftQueue(state, posts, -1);
+    } else if (action === "next") {
+      state = shiftQueue(state, posts, 1);
+    } else if (action === "set" && postId) {
+      const updated = setQueueByPostId(state, posts, postId);
+      if (!updated) {
+        sendJson(res, { error: `Post-ID nicht gefunden: ${postId}` }, 404);
+        return;
+      }
+      state = updated;
+    } else {
+      sendJson(res, { error: "Unbekannte action (prev|next|reset|set)" }, 400);
+      return;
+    }
+
+    saveState(state);
+    sendJson(res, buildStatus());
     return;
   }
 

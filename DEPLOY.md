@@ -48,7 +48,17 @@ Siehe [Railway Healthchecks](https://docs.railway.com/deployments/healthchecks).
 | `DASHBOARD_PASSWORD` | **empfohlen** | Login für umbra / zero / shade (Standard: `nb-umbra-zero-shade`) |
 | `DASHBOARD_SESSION_SECRET` | optional | Cookie-Signatur (zufälliger String) |
 | `DASHBOARD_AUTH_DISABLED` | optional | `1` = Login aus (nur lokal) |
-| `BOT_LAST_INDEX` | optional | `0` = erster Wochenpost gilt als erledigt, Bot startet bei Post 2 |
+| `BOT_LAST_INDEX` | optional | Nur Übergang: `0` = erster Post gilt als erledigt. **Entfernen**, sobald `bot/state.json` Historie mit `tweetId` hat — sonst springt Auto-Modus falsch. |
+
+### Post-Historie (welche Posts schon gepostet wurden)
+
+Keine separate DB nötig: **`bot/state.json`** auf dem Shared Volume speichert pro Erfolg `postId`, `tweetId`, Datum, Slot und Creative. Dashboard und Scheduler lesen/schreiben dieselbe Datei.
+
+- **Auto-Modus:** Nächster Post = letzter Erfolg in Historie + 1 (◀ ▶ **Auto** im Dashboard).
+- **Manuell:** Mit ◀ ▶ durch Wochenplan blättern, dann **Jetzt posten**.
+- Historie wird beim Status-Abruf mit X-Analytics abgeglichen (`tweetId`-Merge).
+
+**Shared Volume** für `bot/` ist Pflicht — sonst postet der Scheduler erneut Post 1, weil er eine leere `state.json` sieht.
 
 ### KPIs / X-API funktionieren nicht (401 / 400)
 

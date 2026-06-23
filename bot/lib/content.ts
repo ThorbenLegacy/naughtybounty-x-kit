@@ -64,6 +64,7 @@ function emptyState(): PostState {
     todayDate: null,
     postsToday: 0,
     postedSlots: [],
+    queueIndex: null,
     history: [],
     lastFailure: null,
     failures: [],
@@ -161,15 +162,58 @@ export function postsRemainingToday(
   return Math.max(0, schedule.postsPerDay - current.postsToday);
 }
 
+/** Nächster Index: manuelle Queue oder auto (letzter Erfolg + 1). */
+export function autoNextIndex(state: PostState, posts: PostEntry[]): number {
+  return (effectiveLastIndex(state, posts) + 1) % posts.length;
+}
+
+export function resolveQueueIndex(state: PostState, posts: PostEntry[]): number {
+  const auto = autoNextIndex(state, posts);
+  if (state.queueIndex == null || state.queueIndex === undefined) return auto;
+  const idx = state.queueIndex;
+  if (idx >= 0 && idx < posts.length) return idx;
+  return auto;
+}
+
 export function pickNextPost(posts: PostEntry[], state: PostState): PostEntry {
-  const lastIdx = effectiveLastIndex(state, posts);
-  const idx = (lastIdx + 1) % posts.length;
-  return posts[idx]!;
+  return posts[resolveQueueIndex(state, posts)]!;
 }
 
 export function nextIndex(state: PostState, total: number, posts?: PostEntry[]): number {
-  const lastIdx = posts ? effectiveLastIndex(state, posts) : state.lastIndex;
-  return (lastIdx + 1) % total;
+  if (posts) return resolveQueueIndex(state, posts);
+  return (state.queueIndex ?? state.lastIndex + 1) % total;
+}
+
+export function isPostPublished(state: PostState, postId: string): boolean {
+  return state.history.some((h) => h.postId === postId && h.tweetId);
+}
+
+export function publishedPostIds(state: PostState): string[] {
+  const ids = new Set<string>();
+  for (const h of state.history) {
+    if (h.tweetId) ids.add(h.postId);
+  }
+  return [...ids];
+}
+
+export function shiftQueue(state: PostState, posts: PostEntry[], delta: number): PostState {
+  const current = resolveQueueIndex(state, posts);
+  const next = (current + delta + posts.length) % posts.length;
+  return { ...state, queueIndex: next };
+}
+
+export function resetQueue(state: PostState): PostState {
+  return { ...state, queueIndex: null };
+}
+
+export function setQueueByPostId(
+  state: PostState,
+  posts: PostEntry[],
+  postId: string,
+): PostState | null {
+  const found = findPostById(posts, postId);
+  if (!found) return null;
+  return { ...state, queueIndex: found.index };
 }
 
 export function findPostById(posts: PostEntry[], id: string): { post: PostEntry; index: number } | null {
@@ -530,6 +574,7 @@ export function recordPost(
     todayDate: today,
     postsToday: base.postsToday + 1,
     postedSlots,
+    queueIndex: null,
     lastFailure: null,
     failures: base.failures ?? [],
     history: [
