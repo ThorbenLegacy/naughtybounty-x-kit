@@ -24,6 +24,7 @@ import {
   loadSchedule,
   loadState,
   applyStateReconciliation,
+  stripUnverifiedHistory,
   todayInTimezone,
   xCredentialsDiagnostic,
 } from "./lib/content";
@@ -80,7 +81,7 @@ async function tick(): Promise<void> {
   const now = currentSlot(schedule.timezone);
   const useWeek = process.argv.includes("--week") || existsSync(POSTS_WEEK);
   const { posts } = loadPosts({ week: useWeek });
-  const state = applyStateReconciliation(loadState(), posts, today);
+  const state = applyStateReconciliation(stripUnverifiedHistory(loadState()), posts, today);
 
   const matchedSlot = schedule.slots.find((s) => slotMatches(s, now));
   if (!matchedSlot) return;

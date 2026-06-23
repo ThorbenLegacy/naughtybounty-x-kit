@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { resolve, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TwitterApi, ApiResponseError } from "twitter-api-v2";
-import type { PostEntry, PostsFile, PostFailureEntry, PostState, ScheduleConfig } from "./types";
+import type { PostEntry, PostFailureEntry, PostHistoryEntry, PostsFile, PostState, ScheduleConfig } from "./types";
 
 const BOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const KIT_ROOT = resolve(BOT_DIR, "..");
@@ -147,7 +147,7 @@ export function resetDayIfNeeded(state: PostState, today: string): PostState {
 export function effectiveLastIndex(state: PostState, posts: PostEntry[]): number {
   let maxIdx = state.lastIndex;
   for (const h of state.history) {
-    if (!h.tweetId) continue;
+    if (!isVerifiedHistoryEntry(h)) continue;
     const found = posts.findIndex((p) => p.id === h.postId);
     if (found >= 0) maxIdx = Math.max(maxIdx, found);
   }
@@ -162,7 +162,7 @@ export function applyStateReconciliation(
 ): PostState {
   const base = resetDayIfNeeded(state, today);
   const lastIndex = effectiveLastIndex(base, posts);
-  const todaySuccess = base.history.filter((h) => h.date === today && h.tweetId);
+  const todaySuccess = base.history.filter((h) => h.date === today && isVerifiedHistoryEntry(h));
   const postedSlots = [...base.postedSlots];
   for (const h of todaySuccess) {
     if (h.slot && !postedSlots.includes(h.slot)) postedSlots.push(h.slot);
@@ -213,14 +213,24 @@ export function nextIndex(state: PostState, total: number, posts?: PostEntry[]):
   return (state.queueIndex ?? state.lastIndex + 1) % total;
 }
 
+/** Entfernt fälschlich aus Analytics importierte Historie (ohne Bot-Slot). */
+export function stripUnverifiedHistory(state: PostState): PostState {
+  const history = state.history.filter((h) => !h.tweetId || h.slot);
+  return history.length === state.history.length ? state : { ...state, history };
+}
+
+export function isVerifiedHistoryEntry(h: PostHistoryEntry): boolean {
+  return Boolean(h.tweetId && h.slot);
+}
+
 export function isPostPublished(state: PostState, postId: string): boolean {
-  return state.history.some((h) => h.postId === postId && h.tweetId);
+  return state.history.some((h) => h.postId === postId && isVerifiedHistoryEntry(h));
 }
 
 export function publishedPostIds(state: PostState): string[] {
   const ids = new Set<string>();
   for (const h of state.history) {
-    if (h.tweetId) ids.add(h.postId);
+    if (isVerifiedHistoryEntry(h)) ids.add(h.postId);
   }
   return [...ids];
 }

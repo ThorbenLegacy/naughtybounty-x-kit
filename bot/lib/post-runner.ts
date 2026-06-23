@@ -21,6 +21,7 @@ import {
   recordPostFailure,
   resolveImagePath,
   saveState,
+  stripUnverifiedHistory,
   todayInTimezone,
   validateCreativeImage,
   verifyClient,
@@ -66,7 +67,7 @@ export async function runNextPost(options: RunPostOptions = {}): Promise<RunPost
 
   const today = todayInTimezone(schedule.timezone);
   const slot = currentSlot(schedule.timezone);
-  let state = applyStateReconciliation(loadState(), posts, today);
+  let state = applyStateReconciliation(stripUnverifiedHistory(loadState()), posts, today);
 
   if (!options.force && !canPostToday(state, schedule, today)) {
     return {

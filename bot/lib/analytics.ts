@@ -146,6 +146,7 @@ function matchPostByText(
   tweetText: string,
   posts: Array<{ id: string; description: string; creativePath?: string }>,
 ): { postId: string; creativePath: string | null } | null {
+  // Nur für Analytics-Anzeige — nicht für Post-Historie / „bereits gepostet“.
   const normalized = tweetText.replace(/\s+/g, " ").trim().toLowerCase();
   for (const p of posts) {
     const snippet = p.description.split("\n")[0]?.trim().toLowerCase();

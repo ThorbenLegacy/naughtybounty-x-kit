@@ -40,11 +40,13 @@ import {
   postsRemainingToday,
   publishedPostIds,
   isPostPublished,
+  isVerifiedHistoryEntry,
   resolveQueueIndex,
   resetQueue,
   saveState,
   shiftQueue,
   setQueueByPostId,
+  stripUnverifiedHistory,
   todayInTimezone,
   xCredentialsHint,
   createXClientFresh,
@@ -106,7 +108,7 @@ function loadEnrichedCatalog(): unknown {
       ...entry,
       ...(image ? { image } : {}),
       ...(colorScheme ? { colorScheme } : {}),
-      status: hist ? "posted" : entry.status,
+      status: hist?.tweetId && hist?.slot ? "posted" : entry.status,
       tweetId: hist?.tweetId ?? entry.tweetId ?? null,
     };
   });
@@ -210,55 +212,21 @@ function nextScheduledSlot(
   };
 }
 
-function mergeHistoryFromAnalytics(state: PostState, posts: PostEntry[]): PostState {
-  const analytics = loadAnalytics();
-  if (!analytics?.tweets?.length) return state;
-
-  const knownTweetIds = new Set(
-    state.history.map((h) => h.tweetId).filter((id): id is string => Boolean(id)),
-  );
-  const knownPosts = new Set(
-    state.history.filter((h) => h.tweetId).map((h) => h.postId),
-  );
-  const history = [...state.history];
-  let added = false;
-
-  for (const t of analytics.tweets) {
-    if (!t.linkedPostId || !t.tweetId || knownTweetIds.has(t.tweetId)) continue;
-    if (knownPosts.has(t.linkedPostId)) continue;
-    if (posts.findIndex((p) => p.id === t.linkedPostId) < 0) continue;
-    const date = t.createdAt?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
-    history.push({
-      date,
-      postId: t.linkedPostId,
-      tweetId: t.tweetId,
-      ...(t.image ? { image: String(t.image).replace(/^\//, "") } : {}),
-      ...(t.colorScheme === "light" || t.colorScheme === "dark"
-        ? { colorScheme: t.colorScheme }
-        : {}),
-    });
-    knownTweetIds.add(t.tweetId);
-    knownPosts.add(t.linkedPostId);
-    added = true;
-  }
-
-  return added ? { ...state, history } : state;
-}
-
 function buildStatus() {
   const schedule = loadSchedule();
   const useWeek = existsSync(resolve(KIT_ROOT, "posts-week.json"));
   const { link, posts, account } = loadPosts({ week: useWeek });
   const today = todayInTimezone(schedule.timezone);
   const nowTime = currentSlot(schedule.timezone);
-  const raw = mergeHistoryFromAnalytics(loadState(), posts);
-  const reconciled = applyStateReconciliation(raw, posts, today);
-  const state = { ...reconciled, queueIndex: raw.queueIndex ?? null };
+  const loaded = stripUnverifiedHistory(loadState());
+  const reconciled = applyStateReconciliation(loaded, posts, today);
+  const state = { ...reconciled, queueIndex: loaded.queueIndex ?? null };
 
   if (
-    state.lastIndex !== raw.lastIndex ||
-    state.postsToday !== raw.postsToday ||
-    JSON.stringify(state.postedSlots) !== JSON.stringify(raw.postedSlots)
+    state.history.length !== loaded.history.length ||
+    state.lastIndex !== loaded.lastIndex ||
+    state.postsToday !== loaded.postsToday ||
+    JSON.stringify(state.postedSlots) !== JSON.stringify(loaded.postedSlots)
   ) {
     saveState(state);
   }
@@ -326,7 +294,7 @@ function buildStatus() {
       autoIndex: autoNextIndex(state, posts) + 1,
     },
     postedPostIds: postedIds,
-    historyCount: state.history.filter((h) => h.tweetId).length,
+    historyCount: state.history.filter(isVerifiedHistoryEntry).length,
     lastPost: lastHistory
       ? {
           date: lastHistory.date,
@@ -664,7 +632,7 @@ const server = createServer(async (req, res) => {
 
     const useWeek = existsSync(POSTS_WEEK_PATH);
     const { posts } = loadPosts({ week: useWeek });
-    let state = applyStateReconciliation(loadState(), posts, todayInTimezone(loadSchedule().timezone));
+    let state = applyStateReconciliation(stripUnverifiedHistory(loadState()), posts, todayInTimezone(loadSchedule().timezone));
 
     if (action === "reset") {
       state = resetQueue(state);

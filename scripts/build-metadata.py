@@ -216,19 +216,21 @@ def post_entry(p: dict, source: str, extra: dict | None = None) -> dict:
 def load_posts(creatives_by_key: dict[str, dict]) -> list[dict]:
     posts: list[dict] = []
     history_by_post: dict[str, dict] = {}
-    state_path = ROOT / "bot" / "state.json"
-    if state_path.exists():
+    for state_path in (ROOT / "data" / "persist" / "state.json", ROOT / "bot" / "state.json"):
+        if not state_path.exists():
+            continue
         state = json.loads(state_path.read_text(encoding="utf-8"))
         for h in state.get("history", []):
             history_by_post[h["postId"]] = h
+        break
 
     pool = json.loads((ROOT / "posts.json").read_text(encoding="utf-8"))
     for p in pool["posts"]:
         extra = {"status": "pool", "tweetId": history_by_post.get(p["id"], {}).get("tweetId")}
-        if p["id"] in history_by_post:
+        hist = history_by_post.get(p["id"])
+        if hist and hist.get("tweetId") and hist.get("slot"):
             extra["status"] = "posted"
-            extra["date"] = history_by_post[p["id"]].get("date")
-            hist = history_by_post[p["id"]]
+            extra["date"] = hist.get("date")
             if hist.get("image"):
                 extra["image"] = hist["image"]
             if hist.get("colorScheme"):
@@ -259,7 +261,7 @@ def load_posts(creatives_by_key: dict[str, dict]) -> list[dict]:
                 or p.get("colorScheme"),
                 "date": meta.get("date"),
                 "time": meta.get("time"),
-                "status": "posted" if hist else meta.get("status", "planned"),
+                "status": "posted" if hist and hist.get("tweetId") and hist.get("slot") else meta.get("status", "planned"),
                 "tweetId": hist.get("tweetId") if hist else None,
             }
             if hist and hist.get("image"):
