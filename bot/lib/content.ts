@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,9 +9,34 @@ const BOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const KIT_ROOT = resolve(BOT_DIR, "..");
 const POSTS_PATH = resolve(KIT_ROOT, "posts.json");
 const POSTS_WEEK_PATH = resolve(KIT_ROOT, "posts-week.json");
-const STATE_PATH = resolve(BOT_DIR, "state.json");
-const OAUTH_TOKENS_PATH = resolve(BOT_DIR, "oauth-tokens.json");
 const SCHEDULE_PATH = resolve(KIT_ROOT, "config", "schedule.json");
+
+/** Laufzeitdaten — nicht unter bot/ (Railway-Volume würde sonst Quellcode überschreiben). */
+export function getPersistDir(): string {
+  const custom = process.env.BOT_PERSIST_DIR?.trim();
+  return custom ? resolve(custom) : resolve(KIT_ROOT, "data", "persist");
+}
+
+function ensurePersistDir(): string {
+  const dir = getPersistDir();
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+const LEGACY_STATE_PATH = resolve(BOT_DIR, "state.json");
+const LEGACY_OAUTH_TOKENS_PATH = resolve(BOT_DIR, "oauth-tokens.json");
+
+function persistPath(name: string): string {
+  return resolve(ensurePersistDir(), name);
+}
+
+function migrateLegacyFile(name: string, legacyPath: string): void {
+  const target = persistPath(name);
+  if (!existsSync(target) && existsSync(legacyPath)) {
+    ensurePersistDir();
+    copyFileSync(legacyPath, target);
+  }
+}
 
 type OAuthTokenStore = {
   accessToken: string;
@@ -21,9 +46,11 @@ type OAuthTokenStore = {
 
 /** Shared Volume: frisch refreshte Tokens (Dashboard + Scheduler). */
 export function loadOAuthTokenStore(): OAuthTokenStore | null {
-  if (!existsSync(OAUTH_TOKENS_PATH)) return null;
+  migrateLegacyFile("oauth-tokens.json", LEGACY_OAUTH_TOKENS_PATH);
+  const path = persistPath("oauth-tokens.json");
+  if (!existsSync(path)) return null;
   try {
-    return JSON.parse(readFileSync(OAUTH_TOKENS_PATH, "utf-8")) as OAuthTokenStore;
+    return JSON.parse(readFileSync(path, "utf-8")) as OAuthTokenStore;
   } catch {
     return null;
   }
@@ -35,7 +62,7 @@ export function saveOAuthTokenStore(accessToken: string, refreshToken?: string):
     ...(refreshToken ? { refreshToken } : {}),
     updatedAt: new Date().toISOString(),
   };
-  writeFileSync(OAUTH_TOKENS_PATH, JSON.stringify(data, null, 2), "utf-8");
+  writeFileSync(persistPath("oauth-tokens.json"), JSON.stringify(data, null, 2), "utf-8");
   process.env.X_OAUTH2_ACCESS_TOKEN = accessToken;
   if (refreshToken) process.env.X_OAUTH2_REFRESH_TOKEN = refreshToken;
 }
@@ -72,11 +99,13 @@ function emptyState(): PostState {
 }
 
 export function loadState(): PostState {
+  migrateLegacyFile("state.json", LEGACY_STATE_PATH);
+  const statePath = persistPath("state.json");
   let state: PostState;
-  if (!existsSync(STATE_PATH)) {
+  if (!existsSync(statePath)) {
     state = emptyState();
   } else {
-    const raw = JSON.parse(readFileSync(STATE_PATH, "utf-8")) as PostState & {
+    const raw = JSON.parse(readFileSync(statePath, "utf-8")) as PostState & {
       lastPostedDate?: string | null;
     };
     state = {
@@ -101,7 +130,7 @@ export function loadState(): PostState {
 }
 
 export function saveState(state: PostState): void {
-  writeFileSync(STATE_PATH, JSON.stringify(state, null, 2), "utf-8");
+  writeFileSync(persistPath("state.json"), JSON.stringify(state, null, 2), "utf-8");
 }
 
 export function resetDayIfNeeded(state: PostState, today: string): PostState {
@@ -345,7 +374,7 @@ export async function createXClientFresh(): Promise<XClientResult> {
           "Hinweis: X_CLIENT_ID/SECRET = OAuth-2.0-Client aus Developer Portal (User Auth Settings), nicht API Key/Secret.",
         );
         authErrors.push(
-          "Nach Token-Rotation: npm run x:refresh lokal, alle 4 OAuth2-Variablen in Railway aktualisieren.",
+          "Nach Token-Rotation: oauth-tokens.json auf Shared Volume prüfen (Mount /app/data/persist, nicht /app/bot).",
         );
       }
     }

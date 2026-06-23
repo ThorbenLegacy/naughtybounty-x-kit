@@ -48,6 +48,7 @@ import {
   todayInTimezone,
   xCredentialsHint,
   createXClientFresh,
+  getPersistDir,
 } from "./lib/content";
 import type { PostEntry, PostState } from "./lib/types";
 import { fetchAnalytics, loadAnalytics, type AnalyticsData } from "./lib/analytics";
@@ -708,6 +709,7 @@ function printStartupBanner(port: number): void {
     console.log("  login: deaktiviert (DASHBOARD_AUTH_DISABLED=1)");
   }
   console.log(`  x-api: ${xCredentialsHint()}`);
+  console.log(`  persist: ${getPersistDir()} (Railway Volume → /app/data/persist)`);
   if (!lightOk) {
     console.log("  Light-Previews: exports-light/ fehlt — npm run build:all oder npm run assets:pull");
   }

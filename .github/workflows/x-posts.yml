@@ -48,4 +48,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(x-kit): update post state"
-          file_pattern: bot/state.json
+          file_pattern: data/persist/state.json

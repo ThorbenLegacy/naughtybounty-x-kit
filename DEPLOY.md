@@ -48,17 +48,20 @@ Siehe [Railway Healthchecks](https://docs.railway.com/deployments/healthchecks).
 | `DASHBOARD_PASSWORD` | **empfohlen** | Login für umbra / zero / shade (Standard: `nb-umbra-zero-shade`) |
 | `DASHBOARD_SESSION_SECRET` | optional | Cookie-Signatur (zufälliger String) |
 | `DASHBOARD_AUTH_DISABLED` | optional | `1` = Login aus (nur lokal) |
-| `BOT_LAST_INDEX` | optional | Nur Übergang: `0` = erster Post gilt als erledigt. **Entfernen**, sobald `bot/state.json` Historie mit `tweetId` hat — sonst springt Auto-Modus falsch. |
+| `BOT_LAST_INDEX` | optional | Nur Übergang: `0` = erster Post gilt als erledigt. **Entfernen**, sobald `data/persist/state.json` Historie mit `tweetId` hat — sonst springt Auto-Modus falsch. |
+| `BOT_PERSIST_DIR` | optional | Pfad für Laufzeitdaten (Default: `/app/data/persist`). Nur setzen, wenn Volume anders gemountet ist. |
 
 ### Post-Historie (welche Posts schon gepostet wurden)
 
-Keine separate DB nötig: **`bot/state.json`** auf dem Shared Volume speichert pro Erfolg `postId`, `tweetId`, Datum, Slot und Creative. Dashboard und Scheduler lesen/schreiben dieselbe Datei.
+Keine separate DB nötig: **`data/persist/state.json`** auf dem Shared Volume speichert pro Erfolg `postId`, `tweetId`, Datum, Slot und Creative. Dashboard und Scheduler lesen/schreiben dieselbe Datei.
 
 - **Auto-Modus:** Nächster Post = letzter Erfolg in Historie + 1 (◀ ▶ **Auto** im Dashboard).
 - **Manuell:** Mit ◀ ▶ durch Wochenplan blättern, dann **Jetzt posten**.
 - Historie wird beim Status-Abruf mit X-Analytics abgeglichen (`tweetId`-Merge).
 
-**Shared Volume** für `bot/` ist Pflicht — sonst postet der Scheduler erneut Post 1, weil er eine leere `state.json` sieht.
+**Shared Volume — Mount Path: `/app/data/persist`** (Dashboard **und** Scheduler).
+
+> **Nicht** `/app/bot` mounten — das überschreibt den Bot-Quellcode (`dashboard.ts` etc.) und der Container startet mit `ERR_MODULE_NOT_FOUND`.
 
 ### KPIs / X-API funktionieren nicht (401 / 400)
 
@@ -68,7 +71,7 @@ Keine separate DB nötig: **`bot/state.json`** auf dem Shared Volume speichert p
 - Zwischen 07:55 und 11:57 ist der Access Token abgelaufen — der Bot versucht Refresh.
 - `400 invalid_request` beim Refresh: Refresh-Token in Railway ist **veraltet** (z. B. nach KPI-Abruf im Dashboard rotiert, aber nicht in Railway gespeichert) oder `X_CLIENT_SECRET` ist falsch (API Secret statt OAuth-2.0-Client-Secret).
 
-Frisch refreshte Tokens werden auf dem **Shared Volume** in `bot/oauth-tokens.json` gespeichert (Dashboard + Scheduler müssen dasselbe Volume für `bot/` mounten).
+Frisch refreshte Tokens werden auf dem **Shared Volume** in `data/persist/oauth-tokens.json` gespeichert (Mount **`/app/data/persist`**, nicht `/app/bot`).
 
 Access Tokens laufen ab. **Lokal erneuern**, dann Werte nach Railway kopieren:
 
@@ -87,7 +90,7 @@ npm run x:verify     # muss ✓ zeigen
 
 Diagnose nach Login: `GET /api/auth/status` auf deiner Railway-URL.
 
-**Automatischer Token-Refresh:** Dashboard und Scheduler erneuern OAuth2-Tokens alle 90 Minuten und speichern sie in `bot/oauth-tokens.json` (Shared Volume). Manueller Post: Button **„Jetzt posten“** im Scheduler-Bereich oder `POST /api/post/now`.
+**Automatischer Token-Refresh:** Dashboard und Scheduler erneuern OAuth2-Tokens alle 90 Minuten und speichern sie in `data/persist/oauth-tokens.json`. Manueller Post: Button **„Jetzt posten“** im Scheduler-Bereich oder `POST /api/post/now`.
 
 OAuth1 (`X_API_KEY` …) ist optional; KPIs laufen mit gültigem OAuth2.
 
@@ -118,7 +121,7 @@ npm run x:schedule -- --week
 - Gleiche Env-Variablen wie beim Dashboard (X OAuth — **ohne** `DASHBOARD_PASSWORD`)
 - Fehlgeschlagene Posts erscheinen im **Command Board** (rotes Banner + Fehlermeldung)
 - **Healthcheck Path leer** — Scheduler hat keinen HTTP-Server
-- **Volume** (empfohlen): `/app/bot/state.json` und `/app/data/` — **gleiches Volume** auch am Dashboard, damit Fehler & Post-Status sichtbar sind
+- **Volume** (empfohlen): Mount **`/app/data/persist`** — **gleiches Volume** an Dashboard und Scheduler (`state.json`, `oauth-tokens.json`)
 - PNGs müssen im Image vorhanden sein (`BUILD_ASSETS=1`) oder per Volume
 
 ## 4. Bilder lokal ziehen
@@ -178,4 +181,4 @@ Railway Docker Build
 | Bot postet ohne Bild | PNGs auf dem Scheduler-Service vorhanden? |
 | Build timeout | `BUILD_ASSETS=0`, PNGs lokal bauen + Volume |
 | Scheduler: „service unavailable“ beim Deploy | Healthcheck in UI leer; `railway.toml` darf kein `healthcheckPath` setzen |
-| Dashboard: Healthcheck timeout | In UI `/health` + Timeout 300s; App muss auf `PORT` lauschen |
+| `ERR_MODULE_NOT_FOUND` `/app/bot/dashboard.ts` | Volume fälschlich auf `/app/bot` — auf **`/app/data/persist`** umhängen |
