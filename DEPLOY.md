@@ -96,8 +96,9 @@ npm run x:schedule -- --week
 ```
 
 - Gleiche Env-Variablen wie beim Dashboard (X OAuth — **ohne** `DASHBOARD_PASSWORD`)
+- Fehlgeschlagene Posts erscheinen im **Command Board** (rotes Banner + Fehlermeldung)
 - **Healthcheck Path leer** — Scheduler hat keinen HTTP-Server
-- **Volume** (empfohlen): `/app/bot/state.json` und `/app/data/` mounten, damit Post-Status zwischen Restarts erhalten bleibt
+- **Volume** (empfohlen): `/app/bot/state.json` und `/app/data/` — **gleiches Volume** auch am Dashboard, damit Fehler & Post-Status sichtbar sind
 - PNGs müssen im Image vorhanden sein (`BUILD_ASSETS=1`) oder per Volume
 
 ## 4. Bilder lokal ziehen

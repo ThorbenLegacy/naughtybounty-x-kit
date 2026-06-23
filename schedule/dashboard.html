@@ -162,6 +162,26 @@
     .row { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
     .id { font-size: 0.75rem; color: var(--muted); font-family: ui-monospace, monospace; }
     .warn { color: var(--warn); font-size: 0.8rem; margin-top: 10px; font-weight: 600; }
+    .pill.err { color: var(--err); border-color: rgba(220, 38, 38, 0.35); background: rgba(220, 38, 38, 0.06); }
+    .err-banner {
+      background: rgba(220, 38, 38, 0.05);
+      border: 1px solid rgba(220, 38, 38, 0.28);
+      border-radius: 20px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+    }
+    .err-banner-title {
+      font-size: 0.8125rem; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--err);
+    }
+    .err-banner-meta { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+    .err-banner-msg {
+      margin-top: 10px; font-size: 0.875rem; font-weight: 600; line-height: 1.5;
+      color: var(--fg); padding: 12px 14px;
+      background: var(--card); border: 1px solid rgba(220, 38, 38, 0.15);
+      border-radius: 12px; font-family: ui-monospace, monospace;
+      word-break: break-word;
+    }
 
     .kpi {
       background: var(--card); border: 1px solid var(--border);
@@ -335,6 +355,11 @@
     <!-- SCHEDULER -->
     <section class="section" id="scheduler">
       <div class="section-title">Scheduler</div>
+      <div class="err-banner" id="failure-banner" hidden>
+        <div class="err-banner-title" id="failure-title">Post fehlgeschlagen</div>
+        <div class="err-banner-meta" id="failure-meta"></div>
+        <div class="err-banner-msg" id="failure-msg"></div>
+      </div>
       <div class="grid-3">
         <div class="card">
           <div class="card-label">Countdown</div>
@@ -365,7 +390,7 @@
         </div>
 
         <div class="card card-muted">
-          <div class="card-label">Letzter Post</div>
+          <div class="card-label" id="last-card-label">Letzter Post</div>
           <p class="sub" id="last-meta" style="margin-top:8px">—</p>
           <p class="notes" style="margin-top:16px">Scheduler: <code>npm run x:schedule</code><br>Aktualisierung alle 5s</p>
         </div>
@@ -440,6 +465,7 @@
     let targetLabel = "";
 
     function pad(n) { return String(n).padStart(2, "0"); }
+    const dt = (s) => (s ? new Date(s).toLocaleString("de-DE") : "—");
     function formatCountdown(ms) {
       if (ms <= 0) return "00:00:00";
       const s = Math.floor(ms / 1000);
@@ -467,8 +493,25 @@
       try {
         const res = await fetch("/api/status");
         const data = await res.json();
-        document.getElementById("live-pill").className = "pill live";
-        document.getElementById("live-pill").textContent = "Live";
+        const fail = data.lastFailure;
+        const failBanner = document.getElementById("failure-banner");
+        const livePill = document.getElementById("live-pill");
+        if (fail) {
+          failBanner.hidden = false;
+          document.getElementById("failure-title").textContent =
+            `Post fehlgeschlagen · ${fail.postId}`;
+          const slotPart = fail.slot ? ` · Slot ${fail.slot}` : "";
+          document.getElementById("failure-meta").textContent =
+            `${dt(fail.at)}${slotPart} · ${fail.date}`;
+          document.getElementById("failure-msg").textContent =
+            fail.code ? `[${fail.code}] ${fail.message}` : fail.message;
+          livePill.className = "pill err";
+          livePill.textContent = "Post fehlgeschlagen";
+        } else {
+          failBanner.hidden = true;
+          livePill.className = "pill live";
+          livePill.textContent = "Live";
+        }
         document.getElementById("now-clock").textContent = data.now.label;
         document.getElementById("today-count").textContent =
           `${data.today.postsToday}/${data.schedule.postsPerDay} · ${data.today.remaining} übrig`;
@@ -497,10 +540,24 @@
         document.getElementById("next-text").textContent = data.nextPost.text;
         const last = data.lastPost;
         const lastEl = document.getElementById("last-meta");
-        if (!last) lastEl.textContent = "Noch keiner";
-        else lastEl.innerHTML = last.url
-          ? `<a href="${last.url}" target="_blank" rel="noopener">${last.postId}</a> · ${last.date} ${last.slot || ""}`
-          : `${last.postId} · ${last.date}`;
+        const lastLabel = document.getElementById("last-card-label");
+        if (fail) {
+          lastLabel.textContent = "Letzter Fehler";
+          const idx = fail.index != null ? ` · Post ${fail.index + 1}` : "";
+          lastEl.innerHTML =
+            `<strong style="color:var(--err)">${fail.postId}</strong>${idx}<br>` +
+            `<span style="font-size:0.85rem;color:var(--muted)">${dt(fail.at)}</span><br>` +
+            `<code style="font-size:0.8rem;display:block;margin-top:8px;word-break:break-word">` +
+            `${fail.code ? `[${fail.code}] ` : ""}${fail.message}</code>`;
+        } else if (!last) {
+          lastLabel.textContent = "Letzter Post";
+          lastEl.textContent = "Noch keiner";
+        } else {
+          lastLabel.textContent = "Letzter Post";
+          lastEl.innerHTML = last.url
+            ? `<a href="${last.url}" target="_blank" rel="noopener">${last.postId}</a> · ${last.date} ${last.slot || ""}`
+            : `${last.postId} · ${last.date}`;
+        }
       } catch {
         document.getElementById("live-pill").className = "pill";
         document.getElementById("live-pill").textContent = "Offline";
@@ -510,7 +567,6 @@
     /* ── Analytics ── */
     const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("de-DE"));
     const pct = (n) => (n == null ? "—" : `${n}%`);
-    const dt = (s) => (s ? new Date(s).toLocaleString("de-DE") : "—");
     let catalog = null, analytics = null, postTab = "all";
 
     function isLightImage(row, src) {

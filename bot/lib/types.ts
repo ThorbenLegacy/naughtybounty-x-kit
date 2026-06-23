@@ -28,6 +28,16 @@ export type PostHistoryEntry = {
   slot?: string;
 };
 
+export type PostFailureEntry = {
+  at: string;
+  date: string;
+  slot?: string;
+  postId: string;
+  index?: number;
+  message: string;
+  code?: number;
+};
+
 export type PostState = {
   lastIndex: number;
   /** @deprecated use todayDate */
@@ -36,4 +46,8 @@ export type PostState = {
   postsToday: number;
   postedSlots: string[];
   history: PostHistoryEntry[];
+  /** Letzter fehlgeschlagener Post-Versuch (bis zum nächsten Erfolg) */
+  lastFailure?: PostFailureEntry | null;
+  /** Verlauf der Fehler (max. 50) */
+  failures?: PostFailureEntry[];
 };

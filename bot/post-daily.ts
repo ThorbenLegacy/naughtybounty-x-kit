@@ -24,6 +24,7 @@ import {
   canPostToday,
   createXClientFresh,
   currentSlot,
+  describePostError,
   findPostById,
   hasCredentials,
   loadPosts,
@@ -34,6 +35,7 @@ import {
   postsRemainingToday,
   publishTweet,
   recordPost,
+  recordPostFailure,
   resetDayIfNeeded,
   resolveImagePath,
   saveState,
@@ -59,6 +61,24 @@ const useWeek = args.has("--week");
 const allowTextOnly = args.has("--allow-text-only");
 const noAdvance = args.has("--no-advance");
 const postId = argValue("--post-id");
+
+function persistFailure(
+  state: ReturnType<typeof loadState>,
+  today: string,
+  slot: string,
+  postId: string,
+  index: number,
+  error: unknown,
+): void {
+  const code = error instanceof ApiResponseError ? error.code : undefined;
+  saveState(
+    recordPostFailure(state, today, postId, describePostError(error), {
+      slot,
+      index,
+      code,
+    }),
+  );
+}
 
 async function main(): Promise<void> {
   const schedule = loadSchedule();
@@ -92,7 +112,13 @@ async function main(): Promise<void> {
   const imagePath = noImage ? null : resolveImagePath(post);
 
   if (imagePath && !preview && !dryRun) {
-    validateCreativeImage(imagePath);
+    try {
+      validateCreativeImage(imagePath);
+    } catch (error) {
+      persistFailure(state, today, slot, post.id, index, error);
+      console.error(describePostError(error));
+      process.exit(1);
+    }
   }
 
   console.log("--- Nächster X-Post ---");
@@ -119,6 +145,10 @@ async function main(): Promise<void> {
   const authResult = await createXClientFresh();
   const client = authResult.client;
   if (!client) {
+    const message = authResult.authErrors.join(" · ") || "X-Client konnte nicht erstellt werden.";
+    saveState(
+      recordPostFailure(state, today, post.id, message, { slot, index }),
+    );
     console.error("X-Client konnte nicht erstellt werden.");
     for (const err of authResult.authErrors) console.error(`  ${err}`);
     console.error(`  ${xCredentialsHint()}`);
@@ -148,6 +178,7 @@ async function main(): Promise<void> {
     const after = postsRemainingToday(loadState(), schedule, today);
     console.log(`Verbleibend heute: ${after}/${schedule.postsPerDay}`);
   } catch (error) {
+    persistFailure(state, today, slot, post.id, index, error);
     if (error instanceof ApiResponseError) {
       if (error.code === 401) {
         console.error("\nAuth fehlgeschlagen (401). npm run x:verify");

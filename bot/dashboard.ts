@@ -189,6 +189,17 @@ function buildStatus() {
             : null,
         }
       : null,
+    lastFailure: state.lastFailure
+      ? {
+          at: state.lastFailure.at,
+          date: state.lastFailure.date,
+          slot: state.lastFailure.slot ?? null,
+          postId: state.lastFailure.postId,
+          index: state.lastFailure.index ?? null,
+          message: state.lastFailure.message,
+          code: state.lastFailure.code ?? null,
+        }
+      : null,
   };
 }
 

@@ -55,7 +55,7 @@ npm run build:all
 
 ### 3. X-Bot (optional, 3 Posts/Tag)
 
-Zeiten in `config/schedule.json` (Standard: 08:00, 14:00, 07:17 Europe/Berlin):
+Zeiten in `config/schedule.json` (Standard: 08:00, 14:00, 07:32 Europe/Berlin):
 
 ```bash
 npm run x:verify      # Auth testen

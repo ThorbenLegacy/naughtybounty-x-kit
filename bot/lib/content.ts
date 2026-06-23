@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { resolve, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TwitterApi, ApiResponseError } from "twitter-api-v2";
-import type { PostEntry, PostsFile, PostState, ScheduleConfig } from "./types";
+import type { PostEntry, PostsFile, PostFailureEntry, PostState, ScheduleConfig } from "./types";
 
 const BOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const KIT_ROOT = resolve(BOT_DIR, "..");
@@ -29,6 +29,8 @@ function emptyState(): PostState {
     postsToday: 0,
     postedSlots: [],
     history: [],
+    lastFailure: null,
+    failures: [],
   };
 }
 
@@ -46,6 +48,8 @@ export function loadState(): PostState {
       todayDate: raw.todayDate ?? raw.lastPostedDate ?? null,
       postsToday: raw.postsToday ?? (raw.todayDate || raw.lastPostedDate ? 1 : 0),
       postedSlots: raw.postedSlots ?? [],
+      lastFailure: raw.lastFailure ?? null,
+      failures: raw.failures ?? [],
     };
   }
 
@@ -176,9 +180,19 @@ function env(name: string): string | undefined {
 
 function formatApiError(error: unknown): string {
   if (error instanceof ApiResponseError) {
-    return `${error.code} ${JSON.stringify(error.errors ?? error.data ?? "")}`;
+    const detail = error.errors?.length
+      ? error.errors.map((e) => e.message).join("; ")
+      : typeof error.data === "object" && error.data && "detail" in error.data
+        ? String((error.data as { detail?: string }).detail)
+        : JSON.stringify(error.errors ?? error.data ?? "");
+    return `X API ${error.code}: ${detail}`;
   }
+  if (error instanceof Error) return error.message;
   return String(error);
+}
+
+export function describePostError(error: unknown): string {
+  return formatApiError(error);
 }
 
 async function verifyXClient(client: TwitterApi): Promise<void> {
@@ -271,6 +285,28 @@ export function xCredentialsHint(): string {
   if (mode === "oauth2") return "OAuth2 konfiguriert";
   if (mode === "oauth1") return "OAuth1 konfiguriert";
   return "X-API fehlt — X_OAUTH2_ACCESS_TOKEN (+ Refresh) in Railway Variables setzen";
+}
+
+/** Welche X-Variablen gesetzt sind (ohne Werte) — für Scheduler-Logs / Railway-Diagnose. */
+export function xCredentialsDiagnostic(): string[] {
+  const lines: string[] = [];
+  const mark = (name: string) => {
+    const v = env(name);
+    if (!v) return lines.push(`  ${name}: fehlt`);
+    lines.push(`  ${name}: gesetzt (${v.length} Zeichen)`);
+  };
+  mark("X_OAUTH2_ACCESS_TOKEN");
+  mark("X_OAUTH2_REFRESH_TOKEN");
+  mark("X_CLIENT_ID");
+  mark("X_CLIENT_SECRET");
+  mark("X_API_KEY");
+  mark("X_ACCESS_TOKEN");
+  const cid = env("X_CLIENT_ID");
+  const apiKey = env("X_API_KEY");
+  if (cid && apiKey && cid === apiKey) {
+    lines.push("  ⚠ X_CLIENT_ID = X_API_KEY — falsch! OAuth-2.0-Client-ID aus User Auth Settings verwenden.");
+  }
+  return lines;
 }
 
 function mediaTypeForPath(imagePath: string): string {
@@ -425,10 +461,36 @@ export function recordPost(
     todayDate: today,
     postsToday: base.postsToday + 1,
     postedSlots,
+    lastFailure: null,
+    failures: base.failures ?? [],
     history: [
       ...base.history.slice(-180),
       { date: today, postId, tweetId, slot },
     ],
+  };
+}
+
+export function recordPostFailure(
+  state: PostState,
+  today: string,
+  postId: string,
+  message: string,
+  options: { slot?: string; index?: number; code?: number } = {},
+): PostState {
+  const base = resetDayIfNeeded(state, today);
+  const failure: PostFailureEntry = {
+    at: new Date().toISOString(),
+    date: today,
+    slot: options.slot,
+    postId,
+    index: options.index,
+    message,
+    code: options.code,
+  };
+  return {
+    ...base,
+    lastFailure: failure,
+    failures: [...(base.failures ?? []).slice(-49), failure],
   };
 }
 

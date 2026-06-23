@@ -15,6 +15,8 @@
     "x:preview": "tsx bot/post-daily.ts --preview",
     "x:verify": "tsx bot/verify-x.ts",
     "x:oauth2": "tsx bot/oauth2-setup.ts",
+    "x:oauth2:url": "tsx bot/oauth2-url.ts",
+    "x:debug-auth": "tsx bot/debug-x-auth.ts",
     "x:refresh": "tsx bot/refresh-oauth2.ts",
     "x:validate-creative": "python3 scripts/validate-creative.py",
     "x:post": "tsx bot/post-daily.ts",

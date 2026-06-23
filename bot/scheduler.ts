@@ -18,11 +18,13 @@ config({ path: resolve(KIT_ROOT, ".env") });
 
 import {
   canPostToday,
+  createXClientFresh,
   currentSlot,
   loadSchedule,
   loadState,
   resetDayIfNeeded,
   todayInTimezone,
+  xCredentialsDiagnostic,
 } from "./lib/content";
 
 const CHECK_MS = 60_000;
@@ -36,10 +38,26 @@ function runPost(): Promise<number> {
       cwd: KIT_ROOT,
       stdio: "inherit",
       shell: process.platform === "win32",
+      env: process.env,
     });
     child.on("error", reject);
     child.on("close", (code) => resolvePromise(code ?? 1));
   });
+}
+
+async function verifyAuthAtStartup(): Promise<void> {
+  console.log("X-Auth prüfen …");
+  for (const line of xCredentialsDiagnostic()) console.log(line);
+  const auth = await createXClientFresh();
+  if (auth.client) {
+    console.log(`✓ X-Auth OK (${auth.authMethod})\n`);
+    return;
+  }
+  console.error("\n✗ X-Auth fehlgeschlagen — Posts werden scheitern bis Railway-Variablen aktualisiert sind.");
+  for (const err of auth.authErrors) console.error(`  ${err}`);
+  console.error("\nLokal funktioniert es? Diese 4 Variablen 1:1 in Railway (Scheduler) kopieren:");
+  console.error("  X_OAUTH2_ACCESS_TOKEN, X_OAUTH2_REFRESH_TOKEN, X_CLIENT_ID, X_CLIENT_SECRET");
+  console.error("  X_CLIENT_ID/SECRET = OAuth 2.0 User Auth (Developer Portal), NICHT API Key/Secret.\n");
 }
 
 function slotMatches(configured: string, now: string): boolean {
@@ -79,6 +97,7 @@ async function main(): Promise<void> {
   console.log(`Posts:    ${useWeek ? "posts-week.json (Wochenplan)" : "posts.json"}`);
   console.log(`Prüfung alle ${CHECK_MS / 1000}s — Strg+C zum Beenden\n`);
 
+  await verifyAuthAtStartup();
   await tick();
   setInterval(() => {
     tick().catch((err) => console.error("Scheduler-Fehler:", err));
