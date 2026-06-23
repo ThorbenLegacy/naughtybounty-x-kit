@@ -6,7 +6,7 @@
   "slots": [
     "08:00",
     "14:00",
-    "07:32"
+    "07:40"
   ],
   "days": [
     {
@@ -34,7 +34,7 @@
           "image": "exports/cards/fact-of-chat-stress.png"
         },
         {
-          "time": "07:32",
+          "time": "07:40",
           "audience": "creators",
           "theme": "Function",
           "creative": "cards/func-challenges-drops",
@@ -70,7 +70,7 @@
           "image": "exports/cards/fact-treuhand.png"
         },
         {
-          "time": "07:32",
+          "time": "07:40",
           "audience": "users",
           "theme": "How-to",
           "creative": "cards/howto-challenge-4",
@@ -106,7 +106,7 @@
           "image": "exports/cards/tip-content-batch.png"
         },
         {
-          "time": "07:32",
+          "time": "07:40",
           "audience": "creators",
           "theme": "Facts",
           "creative": "cards/fact-gebuehr-level",
@@ -142,7 +142,7 @@
           "image": "exports/cards/fact-verifiziert.png"
         },
         {
-          "time": "07:32",
+          "time": "07:40",
           "audience": "users",
           "theme": "Brand",
           "creative": "brand-users/fair-budget",
@@ -178,7 +178,7 @@
           "image": "exports/cards/fact-privatsphaere.png"
         },
         {
-          "time": "07:32",
+          "time": "07:40",
           "audience": "creators",
           "theme": "Function",
           "creative": "cards/func-level-system",
@@ -214,7 +214,7 @@
           "image": "exports/cards/fact-kein-abo.png"
         },
         {
-          "time": "07:32",
+          "time": "07:40",
           "audience": "users",
           "theme": "Bullets",
           "creative": "bullets-users/default",
@@ -250,7 +250,7 @@
           "image": "exports/brand-users/treuhand-sicher.png"
         },
         {
-          "time": "07:32",
+          "time": "07:40",
           "audience": "creators",
           "theme": "Brand",
           "creative": "brand/new-onlyfans",
