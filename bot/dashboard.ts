@@ -57,8 +57,12 @@ import {
   verifyCredentials,
 } from "./lib/auth";
 import { handleStudioApi, serveCreativeHtml, serveUpload } from "./lib/studio";
+import { runNextPost } from "./lib/post-runner";
 
 let refreshInFlight = false;
+let postInFlight = false;
+const TOKEN_REFRESH_MS = 90 * 60 * 1000;
+const POSTS_WEEK_PATH = resolve(KIT_ROOT, "posts-week.json");
 
 function readJson(path: string): unknown {
   if (!existsSync(path)) return { error: "Datei fehlt — bitte Metadaten neu bauen." };
@@ -591,6 +595,32 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === "POST" && url.pathname === "/api/post/now") {
+    const raw = await readBody(req);
+    let force = false;
+    if (raw.trim()) {
+      try {
+        force = JSON.parse(raw).force === true;
+      } catch {
+        /* ignore */
+      }
+    }
+    if (postInFlight) {
+      sendJson(res, { ok: false, error: "Post läuft bereits" }, 429);
+      return;
+    }
+    postInFlight = true;
+    try {
+      const result = await runNextPost({ force, week: existsSync(POSTS_WEEK_PATH) });
+      sendJson(res, result, result.ok ? 200 : 500);
+    } catch (e) {
+      sendJson(res, { ok: false, error: String(e) }, 500);
+    } finally {
+      postInFlight = false;
+    }
+    return;
+  }
+
   sendJson(res, { error: "Not found" }, 404);
 });
 
@@ -641,6 +671,22 @@ function tryListen(port: number, attemptsLeft: number): void {
 }
 
 tryListen(PORT, 5);
+
+async function maintainOAuthTokens(): Promise<void> {
+  try {
+    const result = await createXClientFresh();
+    if (result.client) {
+      console.log(`OAuth tokens OK (${result.authMethod})`);
+    } else {
+      console.warn("OAuth token refresh:", result.authErrors.join(" · "));
+    }
+  } catch (e) {
+    console.warn("OAuth token refresh error:", e);
+  }
+}
+
+maintainOAuthTokens();
+setInterval(maintainOAuthTokens, TOKEN_REFRESH_MS);
 
 process.on("SIGINT", () => {
   server.close();

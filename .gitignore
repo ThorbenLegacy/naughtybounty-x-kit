@@ -5,6 +5,7 @@ node_modules/
 
 # Bot-/Laufzeitdaten (nicht committen)
 bot/state.json
+bot/oauth-tokens.json
 bot/.oauth2-pending.json
 data/analytics.json
 

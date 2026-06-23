@@ -368,6 +368,11 @@
     }
     .trend-tooltip.show { opacity: 1; }
     .trend-empty { text-align: center; padding: 48px 16px; color: var(--muted); }
+
+    .post-now-row {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
+    }
   </style>
 </head>
 <body>
@@ -424,6 +429,10 @@
             </div>
           </div>
           <div class="slots" id="slots"></div>
+          <div class="post-now-row">
+            <button class="btn" id="postNowBtn" type="button">▶ Jetzt posten</button>
+            <span class="status" id="postNowStatus"></span>
+          </div>
           <p class="warn" id="warn" hidden></p>
         </div>
 
@@ -555,6 +564,35 @@
         el.appendChild(span);
       }
     }
+    async function postNow() {
+      const btn = document.getElementById("postNowBtn");
+      const status = document.getElementById("postNowStatus");
+      if (!confirm("Nächsten Post in der Warteschlange jetzt auf X veröffentlichen?")) return;
+      btn.disabled = true;
+      status.textContent = "Poste …";
+      status.className = "status";
+      try {
+        const res = await fetch("/api/post/now", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || `Fehler ${res.status}`);
+        status.textContent = `✓ ${data.postId}`;
+        status.className = "status ok";
+        if (data.url) window.open(data.url, "_blank", "noopener");
+        refreshScheduler();
+        loadAnalytics();
+      } catch (e) {
+        status.textContent = e.message;
+        status.className = "status err";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
     async function refreshScheduler() {
       try {
         const res = await fetch("/api/status");
@@ -1084,6 +1122,7 @@
 
     document.getElementById("refreshBtn").onclick = refreshAnalytics;
     document.getElementById("rebuildBtn").onclick = rebuildCatalog;
+    document.getElementById("postNowBtn").onclick = postNow;
     ["tweetFilter", "postFilter", "creativeFilter"].forEach((id) => {
       document.getElementById(id).oninput = () => {
         if (id === "tweetFilter") renderTweets();

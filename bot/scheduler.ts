@@ -46,6 +46,15 @@ function runPost(): Promise<number> {
   });
 }
 
+async function maintainOAuthTokens(): Promise<void> {
+  const auth = await createXClientFresh();
+  if (auth.client) {
+    console.log(`OAuth tokens OK (${auth.authMethod})`);
+  } else {
+    console.warn("OAuth token refresh:", auth.authErrors.join(" · "));
+  }
+}
+
 async function verifyAuthAtStartup(): Promise<void> {
   console.log("X-Auth prüfen …");
   for (const line of xCredentialsDiagnostic()) console.log(line);
@@ -101,6 +110,9 @@ async function main(): Promise<void> {
   console.log(`Prüfung alle ${CHECK_MS / 1000}s — Strg+C zum Beenden\n`);
 
   await verifyAuthAtStartup();
+  setInterval(() => {
+    maintainOAuthTokens().catch((err) => console.warn("OAuth refresh:", err));
+  }, 90 * 60 * 1000);
   await tick();
   setInterval(() => {
     tick().catch((err) => console.error("Scheduler-Fehler:", err));

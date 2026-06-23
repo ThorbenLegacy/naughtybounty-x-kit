@@ -10,7 +10,43 @@ const KIT_ROOT = resolve(BOT_DIR, "..");
 const POSTS_PATH = resolve(KIT_ROOT, "posts.json");
 const POSTS_WEEK_PATH = resolve(KIT_ROOT, "posts-week.json");
 const STATE_PATH = resolve(BOT_DIR, "state.json");
+const OAUTH_TOKENS_PATH = resolve(BOT_DIR, "oauth-tokens.json");
 const SCHEDULE_PATH = resolve(KIT_ROOT, "config", "schedule.json");
+
+type OAuthTokenStore = {
+  accessToken: string;
+  refreshToken?: string;
+  updatedAt: string;
+};
+
+/** Shared Volume: frisch refreshte Tokens (Dashboard + Scheduler). */
+export function loadOAuthTokenStore(): OAuthTokenStore | null {
+  if (!existsSync(OAUTH_TOKENS_PATH)) return null;
+  try {
+    return JSON.parse(readFileSync(OAUTH_TOKENS_PATH, "utf-8")) as OAuthTokenStore;
+  } catch {
+    return null;
+  }
+}
+
+export function saveOAuthTokenStore(accessToken: string, refreshToken?: string): void {
+  const data: OAuthTokenStore = {
+    accessToken,
+    ...(refreshToken ? { refreshToken } : {}),
+    updatedAt: new Date().toISOString(),
+  };
+  writeFileSync(OAUTH_TOKENS_PATH, JSON.stringify(data, null, 2), "utf-8");
+  process.env.X_OAUTH2_ACCESS_TOKEN = accessToken;
+  if (refreshToken) process.env.X_OAUTH2_REFRESH_TOKEN = refreshToken;
+}
+
+function effectiveOAuth2Tokens(): { access?: string; refresh?: string } {
+  const store = loadOAuthTokenStore();
+  return {
+    access: store?.accessToken ?? env("X_OAUTH2_ACCESS_TOKEN"),
+    refresh: store?.refreshToken ?? env("X_OAUTH2_REFRESH_TOKEN"),
+  };
+}
 
 export function loadSchedule(): ScheduleConfig {
   return JSON.parse(readFileSync(SCHEDULE_PATH, "utf-8")) as ScheduleConfig;
@@ -239,7 +275,7 @@ export type XClientResult = {
 export async function createXClientFresh(): Promise<XClientResult> {
   const authErrors: string[] = [];
 
-  const oauth2Token = env("X_OAUTH2_ACCESS_TOKEN");
+  const { access: oauth2Token, refresh: refreshTokenEnv } = effectiveOAuth2Tokens();
   if (oauth2Token) {
     const direct = new TwitterApi(oauth2Token);
     try {
@@ -251,19 +287,21 @@ export async function createXClientFresh(): Promise<XClientResult> {
 
     const clientId = env("X_CLIENT_ID");
     const clientSecret = env("X_CLIENT_SECRET");
-    const refreshToken = env("X_OAUTH2_REFRESH_TOKEN");
+    const refreshToken = refreshTokenEnv;
     if (clientId && clientSecret && refreshToken) {
       try {
         const app = new TwitterApi({ clientId, clientSecret });
         const result = await app.refreshOAuth2Token(refreshToken);
-        process.env.X_OAUTH2_ACCESS_TOKEN = result.accessToken;
-        if (result.refreshToken) process.env.X_OAUTH2_REFRESH_TOKEN = result.refreshToken;
+        saveOAuthTokenStore(result.accessToken, result.refreshToken ?? refreshToken);
         await verifyXClient(result.client);
         return { client: result.client, authMethod: "oauth2", authErrors: [] };
       } catch (e) {
         authErrors.push(`OAuth2 Refresh: ${formatApiError(e)}`);
         authErrors.push(
           "Hinweis: X_CLIENT_ID/SECRET = OAuth-2.0-Client aus Developer Portal (User Auth Settings), nicht API Key/Secret.",
+        );
+        authErrors.push(
+          "Nach Token-Rotation: npm run x:refresh lokal, alle 4 OAuth2-Variablen in Railway aktualisieren.",
         );
       }
     }

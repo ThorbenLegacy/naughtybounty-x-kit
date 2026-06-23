@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TwitterApi } from "twitter-api-v2";
+import { saveOAuthTokenStore } from "./lib/content";
 
 const KIT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ENV_PATH = resolve(KIT_ROOT, ".env.local");
@@ -38,6 +39,7 @@ async function main(): Promise<void> {
 
   const app = new TwitterApi({ clientId, clientSecret });
   const result = await app.refreshOAuth2Token(refreshToken);
+  saveOAuthTokenStore(result.accessToken, result.refreshToken ?? refreshToken);
   upsertEnv(ENV_PATH, {
     X_OAUTH2_ACCESS_TOKEN: result.accessToken,
     ...(result.refreshToken ? { X_OAUTH2_REFRESH_TOKEN: result.refreshToken } : {}),

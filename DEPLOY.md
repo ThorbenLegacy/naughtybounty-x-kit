@@ -52,6 +52,14 @@ Siehe [Railway Healthchecks](https://docs.railway.com/deployments/healthchecks).
 
 ### KPIs / X-API funktionieren nicht (401 / 400)
 
+**Typisch:** Erster Post des Tages klappt, späterer Slot (z. B. 11:57) scheitert mit `OAuth2 Access: 401` + `OAuth2 Refresh: 400`.
+
+- OAuth2-Access-Tokens sind nur **~2 Stunden** gültig.
+- Zwischen 07:55 und 11:57 ist der Access Token abgelaufen — der Bot versucht Refresh.
+- `400 invalid_request` beim Refresh: Refresh-Token in Railway ist **veraltet** (z. B. nach KPI-Abruf im Dashboard rotiert, aber nicht in Railway gespeichert) oder `X_CLIENT_SECRET` ist falsch (API Secret statt OAuth-2.0-Client-Secret).
+
+Frisch refreshte Tokens werden auf dem **Shared Volume** in `bot/oauth-tokens.json` gespeichert (Dashboard + Scheduler müssen dasselbe Volume für `bot/` mounten).
+
 Access Tokens laufen ab. **Lokal erneuern**, dann Werte nach Railway kopieren:
 
 ```bash
@@ -68,6 +76,8 @@ npm run x:verify     # muss ✓ zeigen
 - `X_CLIENT_SECRET` — OAuth **2.0** Client Secret, **nicht** API Secret
 
 Diagnose nach Login: `GET /api/auth/status` auf deiner Railway-URL.
+
+**Automatischer Token-Refresh:** Dashboard und Scheduler erneuern OAuth2-Tokens alle 90 Minuten und speichern sie in `bot/oauth-tokens.json` (Shared Volume). Manueller Post: Button **„Jetzt posten“** im Scheduler-Bereich oder `POST /api/post/now`.
 
 OAuth1 (`X_API_KEY` …) ist optional; KPIs laufen mit gültigem OAuth2.
 
