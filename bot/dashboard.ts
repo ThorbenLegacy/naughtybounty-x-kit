@@ -35,6 +35,7 @@ import {
   loadSchedule,
   loadState,
   applyStateReconciliation,
+  nextIndex,
   pickNextPost,
   postMediaMeta,
   postsRemainingToday,
@@ -42,6 +43,7 @@ import {
   xCredentialsHint,
   createXClientFresh,
 } from "./lib/content";
+import type { PostEntry, PostState } from "./lib/types";
 import { fetchAnalytics, loadAnalytics, type AnalyticsData } from "./lib/analytics";
 import {
   authEnabled,
