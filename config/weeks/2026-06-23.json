@@ -4,9 +4,9 @@
   "title": "KW 26 · 23.–29. Juni 2026",
   "timezone": "Europe/Berlin",
   "slots": [
-    "08:00",
-    "14:00",
-    "07:40"
+    "07:55",
+    "11:57",
+    "16:13"
   ],
   "days": [
     {
@@ -14,7 +14,7 @@
       "label": "Montag",
       "posts": [
         {
-          "time": "08:00",
+          "time": "07:55",
           "audience": "creators",
           "theme": "Brand",
           "creative": "brand/deine-regeln",
@@ -24,7 +24,7 @@
           "image": "exports/brand/deine-regeln.png"
         },
         {
-          "time": "14:00",
+          "time": "11:57",
           "audience": "creators",
           "theme": "Facts",
           "creative": "cards/fact-of-chat-stress",
@@ -34,7 +34,7 @@
           "image": "exports/cards/fact-of-chat-stress.png"
         },
         {
-          "time": "07:40",
+          "time": "16:13",
           "audience": "creators",
           "theme": "Function",
           "creative": "cards/func-challenges-drops",
@@ -50,7 +50,7 @@
       "label": "Dienstag",
       "posts": [
         {
-          "time": "08:00",
+          "time": "07:55",
           "audience": "users",
           "theme": "Brand",
           "creative": "brand-users/custom-challenge",
@@ -60,7 +60,7 @@
           "image": "exports/brand-users/custom-challenge.png"
         },
         {
-          "time": "14:00",
+          "time": "11:57",
           "audience": "users",
           "theme": "Facts",
           "creative": "cards/fact-treuhand",
@@ -70,7 +70,7 @@
           "image": "exports/cards/fact-treuhand.png"
         },
         {
-          "time": "07:40",
+          "time": "16:13",
           "audience": "users",
           "theme": "How-to",
           "creative": "cards/howto-challenge-4",
@@ -86,7 +86,7 @@
       "label": "Mittwoch",
       "posts": [
         {
-          "time": "08:00",
+          "time": "07:55",
           "audience": "creators",
           "theme": "Bullets",
           "creative": "bullets/default",
@@ -96,7 +96,7 @@
           "image": "exports/bullets/default.png"
         },
         {
-          "time": "14:00",
+          "time": "11:57",
           "audience": "creators",
           "theme": "Content-Tipp",
           "creative": "cards/tip-content-batch",
@@ -106,7 +106,7 @@
           "image": "exports/cards/tip-content-batch.png"
         },
         {
-          "time": "07:40",
+          "time": "16:13",
           "audience": "creators",
           "theme": "Facts",
           "creative": "cards/fact-gebuehr-level",
@@ -122,7 +122,7 @@
       "label": "Donnerstag",
       "posts": [
         {
-          "time": "08:00",
+          "time": "07:55",
           "audience": "users",
           "theme": "Bullets",
           "creative": "bullets-users/default",
@@ -132,7 +132,7 @@
           "image": "exports/bullets-users/default.png"
         },
         {
-          "time": "14:00",
+          "time": "11:57",
           "audience": "users",
           "theme": "Facts",
           "creative": "cards/fact-verifiziert",
@@ -142,7 +142,7 @@
           "image": "exports/cards/fact-verifiziert.png"
         },
         {
-          "time": "07:40",
+          "time": "16:13",
           "audience": "users",
           "theme": "Brand",
           "creative": "brand-users/fair-budget",
@@ -158,7 +158,7 @@
       "label": "Freitag",
       "posts": [
         {
-          "time": "08:00",
+          "time": "07:55",
           "audience": "creators",
           "theme": "Brand",
           "creative": "brand/kein-chatten",
@@ -168,7 +168,7 @@
           "image": "exports/brand/kein-chatten.png"
         },
         {
-          "time": "14:00",
+          "time": "11:57",
           "audience": "creators",
           "theme": "Facts",
           "creative": "cards/fact-privatsphaere",
@@ -178,7 +178,7 @@
           "image": "exports/cards/fact-privatsphaere.png"
         },
         {
-          "time": "07:40",
+          "time": "16:13",
           "audience": "creators",
           "theme": "Function",
           "creative": "cards/func-level-system",
@@ -194,7 +194,7 @@
       "label": "Samstag",
       "posts": [
         {
-          "time": "08:00",
+          "time": "07:55",
           "audience": "users",
           "theme": "How-to",
           "creative": "cards/howto-budget-briefing",
@@ -204,7 +204,7 @@
           "image": "exports/cards/howto-budget-briefing.png"
         },
         {
-          "time": "14:00",
+          "time": "11:57",
           "audience": "users",
           "theme": "Facts",
           "creative": "cards/fact-kein-abo",
@@ -214,7 +214,7 @@
           "image": "exports/cards/fact-kein-abo.png"
         },
         {
-          "time": "07:40",
+          "time": "16:13",
           "audience": "users",
           "theme": "Bullets",
           "creative": "bullets-users/default",
@@ -230,7 +230,7 @@
       "label": "Sonntag",
       "posts": [
         {
-          "time": "08:00",
+          "time": "07:55",
           "audience": "creators",
           "theme": "Content-Tipp",
           "creative": "cards/tip-drops-resell",
@@ -240,7 +240,7 @@
           "image": "exports/cards/tip-drops-resell.png"
         },
         {
-          "time": "14:00",
+          "time": "11:57",
           "audience": "users",
           "theme": "Brand",
           "creative": "brand-users/treuhand-sicher",
@@ -250,7 +250,7 @@
           "image": "exports/brand-users/treuhand-sicher.png"
         },
         {
-          "time": "07:40",
+          "time": "16:13",
           "audience": "creators",
           "theme": "Brand",
           "creative": "brand/new-onlyfans",

@@ -287,7 +287,7 @@ function flattenWeekPosts(week: WeekFile): WeekPost[] {
 }
 
 function redistributePosts(week: WeekFile, flat: WeekPost[]): WeekFile {
-  const slots = week.slots ?? ["08:00", "14:00", "19:00"];
+  const slots = week.slots ?? ["07:55", "11:57", "16:13"];
   const perDay = slots.length;
   let i = 0;
   const days = week.days.map((day) => {
