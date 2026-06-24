@@ -51,6 +51,7 @@ import {
   xCredentialsHint,
   createXClientFresh,
   getPersistDir,
+  canPostToday,
 } from "./lib/content";
 import type { PostEntry, PostState } from "./lib/types";
 import { fetchAnalytics, loadAnalytics, type AnalyticsData } from "./lib/analytics";
@@ -64,6 +65,8 @@ import {
   resolveUser,
   setSessionCookie,
   verifyCredentials,
+  verifySchedulerSecret,
+  isSchedulerInternalPath,
 } from "./lib/auth";
 import { handleStudioApi, serveCreativeHtml, serveUpload } from "./lib/studio";
 import { runNextPost } from "./lib/post-runner";
@@ -449,6 +452,60 @@ const server = createServer(async (req, res) => {
   if (req.method === "GET" && url.pathname === "/logout") {
     clearSessionCookie(res);
     redirect(res, "/login");
+    return;
+  }
+
+  if (isSchedulerInternalPath(url.pathname, req.method ?? "GET")) {
+    if (!verifySchedulerSecret(req)) {
+      sendJson(res, { error: "Unauthorized" }, 401);
+      return;
+    }
+    const raw = await readBody(req);
+    let body: { week?: boolean; slot?: string; force?: boolean } = {};
+    if (raw.trim()) {
+      try {
+        body = JSON.parse(raw) as { week?: boolean; slot?: string; force?: boolean };
+      } catch {
+        sendJson(res, { error: "Ungültiger JSON-Body" }, 400);
+        return;
+      }
+    }
+    const schedule = loadSchedule();
+    const today = todayInTimezone(schedule.timezone);
+    const nowSlot = currentSlot(schedule.timezone);
+    const slot = body.slot?.trim() || nowSlot;
+    if (!schedule.slots.includes(slot)) {
+      sendJson(res, { ok: false, error: `Unbekannter Slot: ${slot}` }, 400);
+      return;
+    }
+    if (!body.force && slot !== nowSlot) {
+      sendJson(res, { ok: false, error: `Slot ${slot} passt nicht zur aktuellen Zeit ${nowSlot}` }, 409);
+      return;
+    }
+    const useWeek = body.week ?? existsSync(POSTS_WEEK_PATH);
+    const { posts } = loadPosts({ week: useWeek });
+    const state = applyStateReconciliation(stripUnverifiedHistory(loadState()), posts, today);
+    if (state.postedSlots.includes(slot)) {
+      sendJson(res, { ok: false, skipped: true, error: `Slot ${slot} bereits gepostet` });
+      return;
+    }
+    if (!body.force && !canPostToday(state, schedule, today)) {
+      sendJson(res, { ok: false, error: `Tageslimit (${schedule.postsPerDay}) erreicht` }, 429);
+      return;
+    }
+    if (postInFlight) {
+      sendJson(res, { ok: false, error: "Post läuft bereits" }, 429);
+      return;
+    }
+    postInFlight = true;
+    try {
+      const result = await runNextPost({ force: body.force, week: useWeek });
+      sendJson(res, result, result.ok ? 200 : 500);
+    } catch (e) {
+      sendJson(res, { ok: false, error: String(e) }, 500);
+    } finally {
+      postInFlight = false;
+    }
     return;
   }
 

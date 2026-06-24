@@ -57,9 +57,9 @@ Keine separate DB nötig: **`data/persist/state.json`** auf dem Shared Volume sp
 
 - **Auto-Modus:** Nächster Post = letzter Erfolg in Historie + 1 (◀ ▶ **Auto** im Dashboard).
 - **Manuell:** Mit ◀ ▶ durch Wochenplan blättern, dann **Jetzt posten**.
-- Historie wird beim Status-Abruf mit X-Analytics abgeglichen (`tweetId`-Merge).
+- Historie nur aus Bot-Posts mit `tweetId` + `slot` (kein Analytics-Text-Matching mehr)
 
-**Shared Volume — Mount Path: `/app/data/persist`** (Dashboard **und** Scheduler).
+**Shared Volume — nur am Dashboard:** Mount Path **`/app/data/persist`**. Scheduler braucht **kein** Volume (postet über Dashboard-API).
 
 > **Nicht** `/app/bot` mounten — das überschreibt den Bot-Quellcode (`dashboard.ts` etc.) und der Container startet mit `ERR_MODULE_NOT_FOUND`.
 
@@ -118,11 +118,36 @@ Zweiten Service im gleichen Projekt anlegen, **gleiches Repo**, anderer Start-Be
 npm run x:schedule -- --week
 ```
 
-- Gleiche Env-Variablen wie beim Dashboard (X OAuth — **ohne** `DASHBOARD_PASSWORD`)
+**Option C — Scheduler postet über das Dashboard** (kein X-OAuth am Scheduler):
+
+| Variable | Scheduler | Dashboard |
+|----------|-----------|-----------|
+| `DASHBOARD_INTERNAL_URL` | **ja** | — |
+| `SCHEDULER_SECRET` oder `DASHBOARD_PASSWORD` | **ja** (identisch) | **ja** (für Secret-Prüfung) |
+| `X_OAUTH2_*`, `X_CLIENT_*` | **nein** | **ja** |
+| Volume `/app/data/persist` | **nein** | **ja** |
+
+Railway kann **kein Volume zwischen zwei Services teilen**. Deshalb: OAuth + `state.json` nur am **Dashboard**; der Scheduler ruft intern `POST /api/internal/schedule-post` auf.
+
+### Scheduler-Variablen (Railway)
+
+1. **Dashboard-Service** → Settings → Networking → **Private Networking** aktiv
+2. Am **Scheduler** setzen:
+
+```text
+DASHBOARD_INTERNAL_URL=http://${{naughtybounty-x-kit.RAILWAY_PRIVATE_DOMAIN}}:${{naughtybounty-x-kit.PORT}}
+```
+
+(Service-Name `naughtybounty-x-kit` ggf. anpassen — exakt wie in Railway benannt.)
+
+3. **`DASHBOARD_PASSWORD`** (oder `SCHEDULER_SECRET`) auf **beiden** Services **identisch**
+4. **Volume am Scheduler entfernen** — nur Dashboard behält Mount **`/app/data/persist`**
+5. **Healthcheck Path leer** am Scheduler (kein HTTP-Server)
+
+Lokal: Dashboard (`npm start`) in Terminal 1, Scheduler (`npm run x:schedule -- --week`) in Terminal 2 — nutzt `http://127.0.0.1:8765`.
+
 - Fehlgeschlagene Posts erscheinen im **Command Board** (rotes Banner + Fehlermeldung)
-- **Healthcheck Path leer** — Scheduler hat keinen HTTP-Server
-- **Volume** (empfohlen): Mount **`/app/data/persist`** — **gleiches Volume** an Dashboard und Scheduler (`state.json`, `oauth-tokens.json`)
-- PNGs müssen im Image vorhanden sein (`BUILD_ASSETS=1`) oder per Volume
+- PNGs müssen im Dashboard-Image vorhanden sein (`BUILD_ASSETS=1`)
 
 ## 4. Bilder lokal ziehen
 

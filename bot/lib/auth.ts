@@ -190,3 +190,28 @@ export function isPublicPath(pathname: string, method: string): boolean {
   if (pathname === "/logout" && method === "GET") return true;
   return false;
 }
+
+/** Geheimer Scheduler→Dashboard-Zugriff (Railway Private Network). */
+export function schedulerSecret(): string | null {
+  const explicit = process.env.SCHEDULER_SECRET?.trim();
+  if (explicit) return explicit;
+  const pw = process.env.DASHBOARD_PASSWORD?.trim();
+  if (pw) return pw;
+  if (!authEnabled()) return DEFAULT_DASHBOARD_PASSWORD;
+  return null;
+}
+
+export function verifySchedulerSecret(req: IncomingMessage): boolean {
+  const secret = schedulerSecret();
+  if (!secret) return false;
+  const auth = req.headers.authorization ?? "";
+  if (auth.startsWith("Bearer ")) {
+    return safeEqual(auth.slice(7), secret);
+  }
+  const header = req.headers["x-scheduler-secret"];
+  return typeof header === "string" && safeEqual(header, secret);
+}
+
+export function isSchedulerInternalPath(pathname: string, method: string): boolean {
+  return method === "POST" && pathname === "/api/internal/schedule-post";
+}
