@@ -114,10 +114,13 @@ export function isFemaleProfile(name: string, username: string, description: str
   return FEMALE_KEYWORDS.some((kw) => text.includes(kw));
 }
 
-function createReadClient(oauth: TwitterApi | null): TwitterApi | null {
+function createReadClient(oauth: TwitterApi | null): { client: TwitterApi | null; via: "oauth" | "bearer" | null } {
+  // OAuth2/OAuth1 zuerst — funktioniert zuverlässig, wenn Posting/KPIs laufen.
+  // Bearer nur als Fallback (App-only Token aus dem Portal ist oft ungültig/abgelaufen).
+  if (oauth) return { client: oauth, via: "oauth" };
   const bearer = env("X_BEARER_TOKEN");
-  if (bearer) return new TwitterApi(bearer);
-  return oauth;
+  if (bearer) return { client: new TwitterApi(bearer), via: "bearer" };
+  return { client: null, via: null };
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -132,17 +135,17 @@ export async function searchProspects(options: {
   maxResults: number;
 }): Promise<{ hits: ProspectHit[]; scanned: number; notes: string[] }> {
   const auth = await createXClientFresh();
-  const client = createReadClient(auth.client);
+  const { client, via } = createReadClient(auth.client);
   if (!client) {
     throw new Error(
       auth.authErrors.join(" · ") ||
-        "X-API fehlt — X_BEARER_TOKEN oder OAuth2 für Suche konfigurieren.",
+        "X-API fehlt — OAuth2 (tweet.read) oder X_BEARER_TOKEN für Suche konfigurieren.",
     );
   }
 
   const notes: string[] = [];
-  if (env("X_BEARER_TOKEN")) notes.push("Suche via Bearer Token");
-  else if (auth.authMethod) notes.push(`Suche via ${auth.authMethod}`);
+  if (via === "oauth" && auth.authMethod) notes.push(`Suche via ${auth.authMethod}`);
+  else if (via === "bearer") notes.push("Suche via Bearer Token");
 
   const state = loadProspectState();
   const commented = commentedSet(state);
@@ -188,6 +191,13 @@ export async function searchProspects(options: {
       if (hits.length >= target) break;
     }
   } catch (e) {
+    if (e instanceof ApiResponseError && e.code === 401) {
+      throw new Error(
+        via === "bearer"
+          ? "Bearer Token ungültig (401). OAuth2 in .env.local/Railway setzen oder neuen Bearer im X Developer Portal erzeugen."
+          : "X-Auth ungültig (401). OAuth2 erneuern: npm run x:oauth2 bzw. npm run x:refresh",
+      );
+    }
     if (e instanceof ApiResponseError && e.code === 403) {
       throw new Error(
         "Search API nicht freigeschaltet (403). X API Basic/Elevated + Recent Search nötig, oder X_BEARER_TOKEN setzen.",
