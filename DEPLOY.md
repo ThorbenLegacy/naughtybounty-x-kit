@@ -70,6 +70,7 @@ Keine separate DB nötig: **`data/persist/state.json`** auf dem Shared Volume sp
 - OAuth2-Access-Tokens sind nur **~2 Stunden** gültig.
 - Zwischen 07:55 und 11:57 ist der Access Token abgelaufen — der Bot versucht Refresh.
 - `400 invalid_request` beim Refresh: Refresh-Token in Railway ist **veraltet** (z. B. nach KPI-Abruf im Dashboard rotiert, aber nicht in Railway gespeichert) oder `X_CLIENT_SECRET` ist falsch (API Secret statt OAuth-2.0-Client-Secret).
+- **Variablen gesetzt, trotzdem 401/400:** Auf dem Volume liegt oft eine **ältere** `oauth-tokens.json`, die Railway-Env **überschreibt**. Lösung: Datei auf dem Volume löschen **oder** `X_OAUTH2_PREFER_ENV=1` am Dashboard setzen **oder** frische Tokens aus `.env.local` erneut in alle 4 Variablen kopieren (Refresh muss exakt passen).
 
 Frisch refreshte Tokens werden auf dem **Shared Volume** in `data/persist/oauth-tokens.json` gespeichert (Mount **`/app/data/persist`**, nicht `/app/bot`).
 

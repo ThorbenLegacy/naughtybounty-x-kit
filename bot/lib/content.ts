@@ -69,9 +69,25 @@ export function saveOAuthTokenStore(accessToken: string, refreshToken?: string):
 
 function effectiveOAuth2Tokens(): { access?: string; refresh?: string } {
   const store = loadOAuthTokenStore();
+  const envAccess = env("X_OAUTH2_ACCESS_TOKEN");
+  const envRefresh = env("X_OAUTH2_REFRESH_TOKEN");
+
+  if (env("X_OAUTH2_PREFER_ENV") === "1") {
+    return { access: envAccess, refresh: envRefresh };
+  }
+
+  if (!store) {
+    return { access: envAccess, refresh: envRefresh };
+  }
+
+  // Railway-Variablen manuell aktualisiert, Volume noch alt → Env gewinnt
+  if (envRefresh && store.refreshToken && envRefresh !== store.refreshToken) {
+    return { access: envAccess ?? store.accessToken, refresh: envRefresh };
+  }
+
   return {
-    access: store?.accessToken ?? env("X_OAUTH2_ACCESS_TOKEN"),
-    refresh: store?.refreshToken ?? env("X_OAUTH2_REFRESH_TOKEN"),
+    access: store.accessToken ?? envAccess,
+    refresh: store.refreshToken ?? envRefresh,
   };
 }
 
