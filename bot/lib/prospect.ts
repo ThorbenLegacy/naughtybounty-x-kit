@@ -16,6 +16,8 @@ export type ProspectConfig = {
   followersMax: number;
   femaleHeuristic: boolean;
   preferLatestTweet: boolean;
+  /** mention = @-Tweet (X erlaubt keine Cold-Replies); reply = Antwort unter Tweet */
+  commentMode: "mention" | "reply";
   searchMaxResults: number;
   autoCommentDelayMs: number;
   autoCommentMaxPerRun: number;
@@ -36,6 +38,7 @@ export type ProspectHit = {
 
 type ProspectState = {
   commentedTweetIds: string[];
+  commentedUsernames?: string[];
   lastSearch?: { at: string; query: string; found: number };
 };
 
@@ -75,6 +78,7 @@ export function loadProspectConfig(): ProspectConfig {
     followersMax: 10000,
     femaleHeuristic: true,
     preferLatestTweet: false,
+    commentMode: "mention",
     searchMaxResults: 40,
     autoCommentDelayMs: 3000,
     autoCommentMaxPerRun: 10,
@@ -101,12 +105,35 @@ function commentedSet(state: ProspectState): Set<string> {
   return new Set(state.commentedTweetIds);
 }
 
-function markCommented(tweetId: string): void {
+function commentedUsernames(state: ProspectState): Set<string> {
+  return new Set((state.commentedUsernames ?? []).map((u) => u.toLowerCase()));
+}
+
+function isAlreadyOutreached(state: ProspectState, tweetId: string, username: string): boolean {
+  return (
+    commentedSet(state).has(tweetId) ||
+    commentedUsernames(state).has(username.replace(/^@/, "").toLowerCase())
+  );
+}
+
+function markOutreach(tweetId: string, username: string): void {
   const state = loadProspectState();
+  const handle = username.replace(/^@/, "").toLowerCase();
   if (!state.commentedTweetIds.includes(tweetId)) {
     state.commentedTweetIds = [...state.commentedTweetIds.slice(-4999), tweetId];
-    saveProspectState(state);
   }
+  const names = state.commentedUsernames ?? [];
+  if (handle && !names.includes(handle)) {
+    state.commentedUsernames = [...names.slice(-4999), handle];
+  }
+  saveProspectState(state);
+}
+
+function buildMentionText(username: string, text: string): string {
+  const handle = `@${username.replace(/^@/, "").trim()}`;
+  const body = text.trim();
+  if (body.toLowerCase().includes(handle.toLowerCase())) return body;
+  return `${handle} ${body}`;
 }
 
 export function isFemaleProfile(name: string, username: string, description: string): boolean {
@@ -148,7 +175,6 @@ export async function searchProspects(options: {
   else if (via === "bearer") notes.push("Suche via Bearer Token");
 
   const state = loadProspectState();
-  const commented = commentedSet(state);
   const hits: ProspectHit[] = [];
   let scanned = 0;
   const target = Math.min(100, Math.max(10, options.maxResults));
@@ -186,7 +212,7 @@ export async function searchProspects(options: {
         name: user.name ?? "",
         description: user.description ?? "",
         followers,
-        alreadyCommented: commented.has(tweetId),
+        alreadyCommented: isAlreadyOutreached(state, tweetId, user.username ?? ""),
       });
       if (hits.length >= target) break;
     }
@@ -239,24 +265,57 @@ export async function postProspectComment(options: {
   username?: string;
   text: string;
   preferLatestTweet?: boolean;
+  mode?: "mention" | "reply";
 }): Promise<{ ok: true; tweetId: string; replyId: string; url: string } | { ok: false; error: string }> {
   const auth = await createXClientFresh();
   if (!auth.client) {
     return { ok: false, error: auth.authErrors.join(" · ") || "OAuth2 für Kommentare nötig (tweet.write)" };
   }
 
+  const cfg = loadProspectConfig();
+  const mode = options.mode ?? cfg.commentMode ?? "mention";
+  const username = options.username?.replace(/^@/, "").trim();
   const text = options.text.trim();
   if (!text) return { ok: false, error: "Kommentar-Text fehlt" };
-  if (text.length > 280) return { ok: false, error: "Kommentar zu lang (max. 280 Zeichen)" };
+  if (mode === "mention" && !username) return { ok: false, error: "Username für @-Erwähnung fehlt" };
+
+  const mentionText = username ? buildMentionText(username, text) : text;
+  if (mentionText.length > 280) return { ok: false, error: "Kommentar zu lang (max. 280 Zeichen)" };
 
   try {
+    const state = loadProspectState();
+    const trackTweetId =
+      options.tweetId ??
+      (username && options.preferLatestTweet
+        ? await resolveTargetTweetId(auth.client, {
+            username,
+            preferLatest: true,
+          })
+        : undefined);
+
+    if (username && isAlreadyOutreached(state, trackTweetId ?? `user:${username}`, username)) {
+      return { ok: false, error: "An dieses Profil wurde bereits outreach gesendet" };
+    }
+
+    if (mode === "mention") {
+      const posted = await auth.client.v2.tweet(mentionText);
+      const replyId = posted.data?.id;
+      if (!replyId) return { ok: false, error: "X API: Tweet ohne ID" };
+      markOutreach(trackTweetId ?? replyId, username!);
+      return {
+        ok: true,
+        tweetId: trackTweetId ?? replyId,
+        replyId,
+        url: `https://x.com/i/web/status/${replyId}`,
+      };
+    }
+
     const targetId = await resolveTargetTweetId(auth.client, {
       tweetId: options.tweetId,
       username: options.username,
       preferLatest: options.preferLatestTweet ?? false,
     });
 
-    const state = loadProspectState();
     if (commentedSet(state).has(targetId)) {
       return { ok: false, error: "Auf diesen Tweet wurde bereits geantwortet" };
     }
@@ -265,7 +324,7 @@ export async function postProspectComment(options: {
     const replyId = reply.data?.id;
     if (!replyId) return { ok: false, error: "X API: Antwort ohne ID" };
 
-    markCommented(targetId);
+    markOutreach(targetId, username ?? "");
     return {
       ok: true,
       tweetId: targetId,
@@ -273,7 +332,15 @@ export async function postProspectComment(options: {
       url: `https://x.com/i/web/status/${replyId}`,
     };
   } catch (e) {
-    return { ok: false, error: describePostError(e) };
+    const msg = describePostError(e);
+    if (msg.includes("403") && msg.toLowerCase().includes("reply")) {
+      return {
+        ok: false,
+        error:
+          "X blockiert Cold-Replies (403). Standard ist @-Erwähnung (commentMode: mention in config/prospect.json).",
+      };
+    }
+    return { ok: false, error: msg };
   }
 }
 

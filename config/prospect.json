@@ -5,6 +5,7 @@
   "followersMax": 10000,
   "femaleHeuristic": true,
   "preferLatestTweet": false,
+  "commentMode": "mention",
   "searchMaxResults": 40,
   "autoCommentDelayMs": 3000,
   "autoCommentMaxPerRun": 10

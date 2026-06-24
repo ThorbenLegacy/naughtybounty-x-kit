@@ -70,7 +70,7 @@
         <div>
           <div class="kicker">X Marketing · Outreach</div>
           <h1>Creator-<span class="accent">Finder</span></h1>
-          <p class="sub">Deutsche Creator per Hashtag-Suche finden und per API antworten (OAuth2 tweet.write).</p>
+          <p class="sub">Deutsche Creator per Hashtag-Suche finden und per @-Erwähnung ansprechen (X blockiert Cold-Replies).</p>
         </div>
       </div>
       <div class="top-actions">
@@ -107,9 +107,10 @@
       </div>
 
       <div class="card">
-        <h3>Auto-Kommentar</h3>
-        <label for="commentText">Antwort-Text</label>
+        <h3>Auto-Kontakt (@-Erwähnung)</h3>
+        <label for="commentText">Tweet-Text</label>
         <textarea id="commentText" maxlength="280"></textarea>
+        <p class="hint">Postet einen eigenen Tweet mit @username — keine Antwort unter fremde Posts (X API 403).</p>
         <label class="check"><input type="checkbox" id="preferLatest" /> Neuesten Tweet des Profils (statt Such-Treffer)</label>
         <div class="grid-2" style="margin-top:10px;gap:10px">
           <div>
@@ -123,7 +124,7 @@
         </div>
         <div class="row">
           <button class="btn secondary" id="selectAllBtn">Alle auswählen</button>
-          <button class="btn" id="autoBtn" disabled>Auto-Kommentieren</button>
+          <button class="btn" id="autoBtn" disabled>Auto senden</button>
         </div>
         <p class="status" id="autoStatus"></p>
         <p class="hint" id="metaHint">—</p>
@@ -203,7 +204,7 @@
           <td class="truncate" title="${esc(h.tweetText)}">${esc(h.tweetText.slice(0, 120))}${h.tweetText.length > 120 ? "…" : ""}</td>
           <td>
             <a class="link" href="${esc(h.tweetUrl)}" target="_blank" rel="noopener">↗</a>
-            <button type="button" class="mini-btn comment-one" data-idx="${i}" ${h.alreadyCommented ? "disabled" : ""}>Kommentieren</button>
+            <button type="button" class="mini-btn comment-one" data-idx="${i}" ${h.alreadyCommented ? "disabled" : ""}>Ansprechen</button>
           </td>
         </tr>
       `).join("");
@@ -216,7 +217,7 @@
 
     async function commentOne(idx) {
       const h = hits[idx];
-      if (!h || !confirm(`Antwort an @${h.username} posten?`)) return;
+      if (!h || !confirm(`@-Tweet an @${h.username} posten?`)) return;
       const status = document.getElementById("autoStatus");
       status.textContent = "Sende …";
       status.className = "status";
@@ -280,7 +281,7 @@
 
     document.getElementById("autoBtn").onclick = async () => {
       const items = selectedItems();
-      if (!items.length || !confirm(`${Math.min(items.length, +document.getElementById("maxAuto").value)} Antworten posten?`)) return;
+      if (!items.length || !confirm(`${Math.min(items.length, +document.getElementById("maxAuto").value)} @-Tweets posten?`)) return;
       const btn = document.getElementById("autoBtn");
       const status = document.getElementById("autoStatus");
       btn.disabled = true;
@@ -303,7 +304,11 @@
         if (!res.ok || !data.ok) throw new Error(data.error ?? "Fehler");
         const ok = (data.results ?? []).filter((r) => r.ok).length;
         const fail = (data.results ?? []).filter((r) => !r.ok).length;
-        status.textContent = `Fertig: ${ok} ✓, ${fail} ✗` + (data.stopped ? " (Rate-Limit — gestoppt)" : "");
+        const firstErr = (data.results ?? []).find((r) => !r.ok)?.error;
+        status.textContent =
+          `Fertig: ${ok} ✓, ${fail} ✗` +
+          (data.stopped ? " (Rate-Limit — gestoppt)" : "") +
+          (firstErr && fail ? ` — ${firstErr}` : "");
         status.className = fail ? "status err" : "status ok";
         for (const r of data.results ?? []) {
           const h = hits.find((x) => x.username === r.username);
