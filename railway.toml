@@ -6,5 +6,7 @@ dockerfilePath = "Dockerfile"
 # Healthcheck bewusst nicht in railway.toml — gilt für alle Services aus dem Repo.
 # Dashboard: in Railway UI → Settings → Healthcheck Path = /health
 # Scheduler: Healthcheck Path leer lassen (kein HTTP-Server)
+# Deploy-Reihenfolge: Dashboard zuerst. Scheduler nutzt DASHBOARD_INTERNAL_URL mit
+# Reference Variables (${{dashboard-service.*}}) — wartet zusätzlich auf /health beim Start.
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5

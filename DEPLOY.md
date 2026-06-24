@@ -112,6 +112,14 @@ Docker-Build-Arg `BUILD_ASSETS=0` setzen (Railway → Settings → Build → Bui
 
 ## 3. Railway — Scheduler (optional, 2. Service)
 
+### Deploy-Reihenfolge (wichtig)
+
+**Dashboard zuerst, Scheduler danach** — der Scheduler postet nur über die Dashboard-API (`/api/internal/schedule-post`).
+
+1. **Ersteinrichtung:** Dashboard deployen und warten, bis `/health` grün ist → erst dann Scheduler-Service anlegen und starten.
+2. **Updates (gleicher Git-Push):** `DASHBOARD_INTERNAL_URL` mit **Reference Variables** auf den Dashboard-Service setzen (siehe unten). Railway startet den Scheduler dann erst, wenn das Dashboard fertig deployed ist.
+3. **Startup-Wartezeit:** Der Scheduler blockiert beim Start und pollt `GET /health` am Dashboard (max. 10 Min., konfigurierbar via `DASHBOARD_WAIT_MS`). Startet das Dashboard noch nicht, beendet sich der Scheduler mit Exit-Code 1 (Railway startet neu).
+
 Zweiten Service im gleichen Projekt anlegen, **gleiches Repo**, anderer Start-Befehl:
 
 ```bash
@@ -122,7 +130,8 @@ npm run x:schedule -- --week
 
 | Variable | Scheduler | Dashboard |
 |----------|-----------|-----------|
-| `DASHBOARD_INTERNAL_URL` | **ja** | — |
+| `DASHBOARD_INTERNAL_URL` | **ja** (Reference Vars → Deploy-Reihenfolge) | — |
+| `DASHBOARD_WAIT_MS` | optional | — |
 | `SCHEDULER_SECRET` oder `DASHBOARD_PASSWORD` | **ja** (identisch) | **ja** (für Secret-Prüfung) |
 | `X_OAUTH2_*`, `X_CLIENT_*` | **nein** | **ja** |
 | Volume `/app/data/persist` | **nein** | **ja** |

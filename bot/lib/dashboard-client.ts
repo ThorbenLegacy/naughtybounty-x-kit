@@ -24,6 +24,30 @@ export async function pingDashboard(): Promise<{ ok: boolean; error?: string }> 
   }
 }
 
+/** Blockiert bis GET /health ok — für Scheduler-Start nach Dashboard-Deploy. */
+export async function waitForDashboard(options?: {
+  maxWaitMs?: number;
+  intervalMs?: number;
+}): Promise<{ ok: boolean; error?: string }> {
+  const maxWaitMs = options?.maxWaitMs ?? Number(process.env.DASHBOARD_WAIT_MS ?? 600_000);
+  const intervalMs = options?.intervalMs ?? 5_000;
+  const started = Date.now();
+  let attempt = 0;
+
+  while (Date.now() - started < maxWaitMs) {
+    attempt += 1;
+    const health = await pingDashboard();
+    if (health.ok) return { ok: true };
+    console.log(
+      `Dashboard noch nicht bereit (${health.error ?? "?"}), Versuch ${attempt} — warte ${intervalMs / 1000}s …`,
+    );
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+
+  const last = await pingDashboard();
+  return { ok: false, error: last.error ?? "Timeout" };
+}
+
 export async function requestScheduledPost(options: {
   week?: boolean;
   slot?: string;

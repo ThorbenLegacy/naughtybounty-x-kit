@@ -19,6 +19,7 @@ const HOST = process.env.HOST ?? (process.env.RAILWAY_ENVIRONMENT ? "0.0.0.0" : 
 const IS_PRODUCTION = Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === "production");
 const DASHBOARD_HTML = resolve(KIT_ROOT, "schedule", "dashboard.html");
 const STUDIO_HTML = resolve(KIT_ROOT, "schedule", "studio.html");
+const PROSPECT_HTML = resolve(KIT_ROOT, "schedule", "prospect.html");
 const CATALOG_PATH = resolve(KIT_ROOT, "data", "content-catalog.json");
 const ASSETS_DIR = resolve(KIT_ROOT, "assets");
 const EXPORTS_DIR = resolve(KIT_ROOT, "exports");
@@ -69,6 +70,7 @@ import {
   isSchedulerInternalPath,
 } from "./lib/auth";
 import { handleStudioApi, serveCreativeHtml, serveUpload } from "./lib/studio";
+import { handleProspectApi } from "./lib/prospect";
 import { runNextPost } from "./lib/post-runner";
 
 let refreshInFlight = false;
@@ -585,6 +587,17 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === "GET" && url.pathname === "/prospect") {
+    if (!existsSync(PROSPECT_HTML)) {
+      sendJson(res, { error: "prospect.html fehlt" }, 404);
+      return;
+    }
+    sendHtml(res, readFileSync(PROSPECT_HTML, "utf-8"));
+    return;
+  }
+
+  if (await handleProspectApi(req, res, url.pathname, req.method ?? "GET")) return;
+
   if (url.pathname.startsWith("/creatives/html/")) {
     const rel = url.pathname.slice("/creatives/html/".length);
     if (serveCreativeHtml(req, res, rel)) return;
@@ -721,11 +734,12 @@ function printStartupBanner(port: number): void {
   const hostLabel = HOST === "0.0.0.0" ? "0.0.0.0" : HOST;
   const url = `http://${hostLabel === "0.0.0.0" ? "127.0.0.1" : hostLabel}:${port}`;
   const lightOk = existsSync(EXPORTS_LIGHT_DIR);
-  console.log("NaughtyBounty X Command Board + Content Studio");
+  console.log("NaughtyBounty X Command Board + Content Studio + Creator-Finder");
   console.log(`  listening on ${hostLabel}:${port}`);
   if (!IS_PRODUCTION) {
     console.log(`  ${url}`);
     console.log(`  Content Studio: ${url.replace(/\/$/, "")}/studio`);
+    console.log(`  Creator-Finder: ${url.replace(/\/$/, "")}/prospect`);
   }
   console.log(`  exports: ${existsSync(EXPORTS_DIR) ? "ok" : "fehlt"} · exports-light: ${lightOk ? "ok" : "fehlt — npm run build:all"}`);
   if (authEnabled()) {

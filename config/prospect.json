@@ -1,0 +1,11 @@
+{
+  "defaultQuery": "#onlyfans OR #bestfans OR #adultcreator OR #onlyfansde OR #contentcreator place_country:DE lang:de -is:retweet -is:reply",
+  "defaultComment": "Hey! Auf NaughtyBounty behältst du die Kontrolle über deinen Content — ohne endlosen Chat-Stress. Schau mal vorbei: https://naughtybounty.com/for-creators",
+  "followersMin": 200,
+  "followersMax": 10000,
+  "femaleHeuristic": true,
+  "preferLatestTweet": false,
+  "searchMaxResults": 40,
+  "autoCommentDelayMs": 3000,
+  "autoCommentMaxPerRun": 10
+}

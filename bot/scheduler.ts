@@ -16,7 +16,7 @@ config({ path: resolve(KIT_ROOT, ".env.local") });
 config({ path: resolve(KIT_ROOT, ".env") });
 
 import { loadSchedule, todayInTimezone, currentSlot } from "./lib/content";
-import { dashboardInternalBaseUrl, pingDashboard, requestScheduledPost } from "./lib/dashboard-client";
+import { dashboardInternalBaseUrl, requestScheduledPost, waitForDashboard } from "./lib/dashboard-client";
 
 const CHECK_MS = 60_000;
 const POSTS_WEEK = resolve(KIT_ROOT, "posts-week.json");
@@ -26,16 +26,19 @@ function slotMatches(configured: string, now: string): boolean {
   return configured === now;
 }
 
-async function verifyDashboardAtStartup(): Promise<void> {
+async function waitForDashboardAtStartup(): Promise<void> {
   console.log(`Dashboard: ${dashboardInternalBaseUrl()}`);
-  const health = await pingDashboard();
+  console.log("Warte auf Dashboard — Deploy-Reihenfolge: Dashboard zuerst, dann Scheduler.\n");
+  const health = await waitForDashboard();
   if (health.ok) {
     console.log("✓ Dashboard erreichbar — Posts laufen über /api/internal/schedule-post\n");
     return;
   }
-  console.error(`✗ Dashboard nicht erreichbar: ${health.error ?? "unbekannt"}`);
-  console.error("  Railway Scheduler: DASHBOARD_INTERNAL_URL=http://<dashboard-service>.railway.internal:<PORT>");
+  console.error(`✗ Dashboard nach Wartezeit nicht erreichbar: ${health.error ?? "unbekannt"}`);
+  console.error("  Railway: Dashboard-Service muss vor dem Scheduler deployen (Healthcheck /health grün).");
+  console.error("  DASHBOARD_INTERNAL_URL=http://${{naughtybounty-x-kit.RAILWAY_PRIVATE_DOMAIN}}:${{naughtybounty-x-kit.PORT}}");
   console.error("  Lokal: npm start (Dashboard) in zweitem Terminal, dann Scheduler neu starten.\n");
+  process.exit(1);
 }
 
 async function tick(): Promise<void> {
@@ -69,7 +72,7 @@ async function main(): Promise<void> {
   console.log(`Posts:    ${useWeek ? "posts-week.json (Wochenplan)" : "posts.json"}`);
   console.log(`Prüfung alle ${CHECK_MS / 1000}s — Strg+C zum Beenden\n`);
 
-  await verifyDashboardAtStartup();
+  await waitForDashboardAtStartup();
   await tick();
   setInterval(() => {
     tick().catch((err) => console.error("Scheduler-Fehler:", err));
