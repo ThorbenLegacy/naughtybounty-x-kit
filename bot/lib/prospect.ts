@@ -152,45 +152,40 @@ export async function searchProspects(options: {
   const perPage = Math.min(100, Math.max(10, Math.min(50, target)));
 
   try {
-    const iterator = client.v2.search(options.query, {
+    const paginator = await client.v2.search(options.query, {
       max_results: perPage,
       "tweet.fields": ["author_id", "created_at", "public_metrics", "text"],
       "user.fields": ["public_metrics", "description", "location", "username", "name"],
       expansions: ["author_id"],
     });
 
-    for await (const page of iterator) {
-      if (!page.data?.length) break;
-      const usersById = new Map((page.includes?.users ?? []).map((u) => [u.id, u]));
-      for (const tweet of page.data) {
-        scanned += 1;
-        const user = usersById.get(tweet.author_id ?? "");
-        if (!user) continue;
-        const followers = user.public_metrics?.followers_count ?? 0;
-        if (followers < options.followersMin || followers > options.followersMax) continue;
-        if (
-          options.femaleHeuristic &&
-          !isFemaleProfile(user.name ?? "", user.username ?? "", user.description ?? "")
-        ) {
-          continue;
-        }
-        const tweetId = tweet.id;
-        hits.push({
-          tweetId,
-          tweetText: tweet.text ?? "",
-          tweetCreatedAt: tweet.created_at ?? "",
-          tweetUrl: `https://x.com/${user.username}/status/${tweetId}`,
-          userId: user.id,
-          username: user.username ?? "",
-          name: user.name ?? "",
-          description: user.description ?? "",
-          followers,
-          alreadyCommented: commented.has(tweetId),
-        });
-        if (hits.length >= target) break;
+    for await (const tweet of paginator) {
+      scanned += 1;
+      const usersById = new Map((paginator.includes?.users ?? []).map((u) => [u.id, u]));
+      const user = usersById.get(tweet.author_id ?? "");
+      if (!user) continue;
+      const followers = user.public_metrics?.followers_count ?? 0;
+      if (followers < options.followersMin || followers > options.followersMax) continue;
+      if (
+        options.femaleHeuristic &&
+        !isFemaleProfile(user.name ?? "", user.username ?? "", user.description ?? "")
+      ) {
+        continue;
       }
+      const tweetId = tweet.id;
+      hits.push({
+        tweetId,
+        tweetText: tweet.text ?? "",
+        tweetCreatedAt: tweet.created_at ?? "",
+        tweetUrl: `https://x.com/${user.username}/status/${tweetId}`,
+        userId: user.id,
+        username: user.username ?? "",
+        name: user.name ?? "",
+        description: user.description ?? "",
+        followers,
+        alreadyCommented: commented.has(tweetId),
+      });
       if (hits.length >= target) break;
-      await sleep(1100);
     }
   } catch (e) {
     if (e instanceof ApiResponseError && e.code === 403) {
