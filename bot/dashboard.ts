@@ -15,7 +15,8 @@ import { config } from "dotenv";
 const BOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)));
 const KIT_ROOT = resolve(BOT_DIR, "..");
 const PORT = Number(process.env.PORT ?? 8765);
-const HOST = process.env.HOST ?? (process.env.RAILWAY_ENVIRONMENT ? "0.0.0.0" : "127.0.0.1");
+// Railway Private Network = IPv6 — :: bindet v4+v6; 0.0.0.0 reicht intern oft nicht.
+const HOST = process.env.HOST ?? (process.env.RAILWAY_ENVIRONMENT ? "::" : "127.0.0.1");
 const IS_PRODUCTION = Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === "production");
 const DASHBOARD_HTML = resolve(KIT_ROOT, "schedule", "dashboard.html");
 const STUDIO_HTML = resolve(KIT_ROOT, "schedule", "studio.html");

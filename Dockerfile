@@ -24,7 +24,7 @@ ARG BUILD_ASSETS=1
 RUN if [ "$BUILD_ASSETS" = "1" ]; then npm run build:all; else npm run build && npm run week:build && npm run metadata:build; fi
 
 ENV NODE_ENV=production
-ENV HOST=0.0.0.0
+ENV HOST=::
 
 EXPOSE 8765
 

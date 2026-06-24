@@ -8,7 +8,19 @@ export function dashboardInternalBaseUrl(): string {
     process.env.DASHBOARD_INTERNAL_URL?.trim() ||
     process.env.DASHBOARD_URL?.trim() ||
     DEFAULT_LOCAL;
-  return raw.replace(/\/$/, "");
+  const url = raw.replace(/\/$/, "");
+  if (url.includes("${")) {
+    console.warn(
+      "WARN: DASHBOARD_INTERNAL_URL enthält unaufgelöste ${{…}} — in Railway als Reference Variable setzen, nicht literal einfügen.",
+    );
+  }
+  return url;
+}
+
+function describeFetchError(e: unknown): string {
+  if (!(e instanceof Error)) return String(e);
+  const cause = e.cause instanceof Error ? e.cause.message : undefined;
+  return cause ? `${e.message} (${cause})` : e.message;
 }
 
 export async function pingDashboard(): Promise<{ ok: boolean; error?: string }> {
@@ -20,7 +32,7 @@ export async function pingDashboard(): Promise<{ ok: boolean; error?: string }> 
     const data = (await res.json()) as { ok?: boolean };
     return data.ok ? { ok: true } : { ok: false, error: "health not ok" };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+    return { ok: false, error: describeFetchError(e) };
   }
 }
 
@@ -87,6 +99,6 @@ export async function requestScheduledPost(options: {
     }
     return data;
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+    return { ok: false, error: describeFetchError(e) };
   }
 }

@@ -150,6 +150,12 @@ DASHBOARD_INTERNAL_URL=http://${{naughtybounty-x-kit.RAILWAY_PRIVATE_DOMAIN}}:${
 
 (Service-Name `naughtybounty-x-kit` ggf. anpassen — exakt wie in Railway benannt.)
 
+**`fetch failed` im Scheduler:** Meist falsche interne URL oder Dashboard nicht auf IPv6 erreichbar.
+- Erste Log-Zeile muss eine **aufgelöste** URL zeigen, z. B. `http://naughtybounty-x-kit.railway.internal:8080/health` — **nicht** `${{…}}` literal.
+- Dashboard muss auf **`::`** lauschen (ab Fix im Repo); Dashboard **neu deployen**.
+- Am Dashboard-Service **Private Networking** aktiv; **kein** `https://` für interne URL.
+- Wenn `${{…PORT}}` leer bleibt: feste URL z. B. `http://naughtybounty-x-kit.railway.internal:8080` (Port aus Dashboard-Deploy-Logs / `PORT`-Variable).
+
 3. **`DASHBOARD_PASSWORD`** (oder `SCHEDULER_SECRET`) auf **beiden** Services **identisch**
 4. **Volume am Scheduler entfernen** — nur Dashboard behält Mount **`/app/data/persist`**
 5. **Healthcheck Path leer** am Scheduler (kein HTTP-Server)

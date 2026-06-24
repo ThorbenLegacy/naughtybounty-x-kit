@@ -27,7 +27,13 @@ function slotMatches(configured: string, now: string): boolean {
 }
 
 async function waitForDashboardAtStartup(): Promise<void> {
-  console.log(`Dashboard: ${dashboardInternalBaseUrl()}`);
+  const base = dashboardInternalBaseUrl();
+  console.log(`Dashboard-URL: ${base}/health`);
+  if (!/:\d+$/.test(base.replace(/^https?:\/\//, ""))) {
+    console.warn(
+      "WARN: Kein Port in DASHBOARD_INTERNAL_URL — z. B. http://${{Dashboard.RAILWAY_PRIVATE_DOMAIN}}:${{Dashboard.PORT}}",
+    );
+  }
   console.log("Warte auf Dashboard — Deploy-Reihenfolge: Dashboard zuerst, dann Scheduler.\n");
   const health = await waitForDashboard();
   if (health.ok) {
