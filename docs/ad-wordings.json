@@ -1,0 +1,157 @@
+{
+  "meta": {
+    "purpose": "Einzige erlaubte Textquelle für 300×250-Anzeigen. Design: for-creators/page.tsx + globals.css",
+    "structure": "1 Header (titlePre + titleAccent-Pill + titlePost) · 3 Stichpunkte · optional 2 Badges · 1 CTA",
+    "headerDesign": "page.tsx hero h1: font-black leading-[0.95] tracking-tight · accent: rounded-2xl bg-primary px-3 text-primary-foreground",
+    "brandTagline": "Adult-Challenge-Marketplace",
+    "url": "https://naughtybounty.com/for-creators"
+  },
+  "headers": [
+    {
+      "pre": "Kein Bock auf Chatten? Verdiene Geld mit deinem",
+      "accent": "Content",
+      "post": ""
+    },
+    {
+      "pre": "Anonym mit deinen Bildern & Videos",
+      "accent": "Geld verdienen",
+      "post": ""
+    },
+    {
+      "pre": "Keine Lust auf Chats? Verkaufe",
+      "accent": "Content",
+      "post": " statt Zeit."
+    },
+    {
+      "pre": "Verdiene mit",
+      "accent": "Content",
+      "post": " — ohne endlose Nachrichten."
+    },
+    {
+      "pre": "Mehr verdienen mit Content, den du",
+      "accent": "sowieso",
+      "post": " machst."
+    },
+    {
+      "pre": "Adult Content",
+      "accent": "monetarisieren",
+      "post": " — einfach & geschützt."
+    }
+  ],
+  "bullets": [
+    {
+      "id": "pakete-verkaufen",
+      "title": "Pakete verkaufen",
+      "description": "Mache deine Bilder & Videos zu Geld",
+      "icon": "package"
+    },
+    {
+      "id": "challenges",
+      "title": "Mit Challenges Geld verdienen",
+      "description": "Bewerben & Custom Content liefern",
+      "icon": "flame"
+    },
+    {
+      "id": "skalieren",
+      "title": "Einnahmen skalieren",
+      "description": "Einmal erstellen, mehrfach verkaufen",
+      "icon": "repeat"
+    },
+    {
+      "id": "content-monetarisieren",
+      "title": "Mehr aus deinem Content machen",
+      "description": "Bestehende Inhalte clever monetarisieren",
+      "icon": "chart-line"
+    }
+  ],
+  "badges": [
+    "Sicher & Anonym",
+    "Verschlüsselt",
+    "Betrugsschutz",
+    "Verifizierte Nutzer",
+    "Sichere Zahlungen",
+    "Adult-Challenge-Marketplace",
+    "Custom Content",
+    "Diskret",
+    "Datenschutz"
+  ],
+  "ctas": [
+    "Jetzt auf NaughtyBounty",
+    "Creator werden",
+    "Jetzt Content verkaufen",
+    "Starte als Creator",
+    "Content monetarisieren"
+  ],
+  "variants": [
+    { "id": "v01", "theme": "dark", "headerIndex": 0, "bulletIds": ["pakete-verkaufen", "challenges", "skalieren"], "badgeIndices": [], "ctaIndex": 1 },
+    { "id": "v02", "theme": "dark", "headerIndex": 1, "bulletIds": ["pakete-verkaufen", "challenges", "skalieren"], "badgeIndices": [], "ctaIndex": 2 },
+    { "id": "v03", "theme": "dark", "headerIndex": 2, "bulletIds": ["challenges", "pakete-verkaufen", "skalieren"], "badgeIndices": [], "ctaIndex": 3 },
+    { "id": "v04", "theme": "dark", "headerIndex": 3, "bulletIds": ["pakete-verkaufen", "skalieren", "content-monetarisieren"], "badgeIndices": [], "ctaIndex": 4 },
+    { "id": "v05", "theme": "dark", "headerIndex": 4, "bulletIds": ["content-monetarisieren", "challenges", "skalieren"], "badgeIndices": [], "ctaIndex": 0 },
+    { "id": "v06", "theme": "dark", "headerIndex": 5, "bulletIds": ["pakete-verkaufen", "challenges", "skalieren"], "badgeIndices": [], "ctaIndex": 1 },
+    { "id": "v07", "theme": "dark", "headerIndex": 0, "bulletIds": ["challenges", "skalieren", "content-monetarisieren"], "badgeIndices": [0, 4], "ctaIndex": 2 },
+    { "id": "v08", "theme": "dark", "headerIndex": 1, "bulletIds": ["skalieren", "pakete-verkaufen", "challenges"], "badgeIndices": [], "ctaIndex": 3 },
+    { "id": "v09", "theme": "dark", "headerIndex": 2, "bulletIds": ["pakete-verkaufen", "challenges", "skalieren"], "badgeIndices": [1, 2], "ctaIndex": 4 },
+    { "id": "v10", "theme": "dark", "headerIndex": 3, "bulletIds": ["challenges", "content-monetarisieren", "pakete-verkaufen"], "badgeIndices": [], "ctaIndex": 0 },
+    { "id": "v11", "theme": "dark", "headerIndex": 4, "bulletIds": ["pakete-verkaufen", "challenges", "skalieren"], "badgeIndices": [7, 8], "ctaIndex": 1 },
+    { "id": "v12", "theme": "dark", "headerIndex": 5, "bulletIds": ["skalieren", "challenges", "content-monetarisieren"], "badgeIndices": [5, 6], "ctaIndex": 2 },
+    { "id": "v13", "theme": "dark", "headerIndex": 0, "bulletIds": ["content-monetarisieren", "pakete-verkaufen", "challenges"], "badgeIndices": [], "ctaIndex": 3 },
+    { "id": "v14", "theme": "dark", "headerIndex": 1, "bulletIds": ["challenges", "skalieren", "pakete-verkaufen"], "badgeIndices": [3, 4], "ctaIndex": 4 },
+    { "id": "v15", "theme": "dark", "headerIndex": 2, "bulletIds": ["pakete-verkaufen", "skalieren", "content-monetarisieren"], "badgeIndices": [], "ctaIndex": 0 },
+    { "id": "v16", "theme": "dark", "headerIndex": 3, "bulletIds": ["skalieren", "challenges", "pakete-verkaufen"], "badgeIndices": [], "ctaIndex": 1 },
+    { "id": "v17", "theme": "dark", "headerIndex": 4, "bulletIds": ["challenges", "pakete-verkaufen", "content-monetarisieren"], "badgeIndices": [0, 1], "ctaIndex": 2 },
+    { "id": "v18", "theme": "dark", "headerIndex": 5, "bulletIds": ["pakete-verkaufen", "challenges", "skalieren"], "badgeIndices": [], "ctaIndex": 3 },
+    { "id": "v19", "theme": "dark", "headerIndex": 0, "bulletIds": ["skalieren", "challenges", "pakete-verkaufen"], "badgeIndices": [2, 5], "ctaIndex": 4 },
+    { "id": "v20", "theme": "dark", "headerIndex": 1, "bulletIds": ["content-monetarisieren", "challenges", "skalieren"], "badgeIndices": [4, 8], "ctaIndex": 0 },
+    { "id": "v21", "theme": "light", "headerIndex": 2, "bulletIds": ["skalieren", "content-monetarisieren", "challenges"], "badgeIndices": [0, 8], "ctaIndex": 1 },
+    { "id": "v22", "theme": "light", "headerIndex": 3, "bulletIds": ["challenges", "pakete-verkaufen", "skalieren"], "badgeIndices": [], "ctaIndex": 2 },
+    { "id": "v23", "theme": "light", "headerIndex": 4, "bulletIds": ["pakete-verkaufen", "content-monetarisieren", "skalieren"], "badgeIndices": [4, 6], "ctaIndex": 3 },
+    { "id": "v24", "theme": "light", "headerIndex": 5, "bulletIds": ["content-monetarisieren", "pakete-verkaufen", "challenges"], "badgeIndices": [], "ctaIndex": 4 },
+    { "id": "v25", "theme": "light", "headerIndex": 0, "bulletIds": ["skalieren", "pakete-verkaufen", "challenges"], "badgeIndices": [1, 3], "ctaIndex": 0 },
+    { "id": "v26", "theme": "light", "headerIndex": 1, "bulletIds": ["challenges", "content-monetarisieren", "skalieren"], "badgeIndices": [], "ctaIndex": 1 },
+    { "id": "v27", "theme": "light", "headerIndex": 2, "bulletIds": ["pakete-verkaufen", "skalieren", "challenges"], "badgeIndices": [2, 7], "ctaIndex": 2 },
+    { "id": "v28", "theme": "light", "headerIndex": 3, "bulletIds": ["content-monetarisieren", "skalieren", "challenges"], "badgeIndices": [], "ctaIndex": 3 },
+    { "id": "v29", "theme": "light", "headerIndex": 4, "bulletIds": ["challenges", "skalieren", "content-monetarisieren"], "badgeIndices": [5, 4], "ctaIndex": 4 },
+    { "id": "v30", "theme": "light", "headerIndex": 5, "bulletIds": ["skalieren", "content-monetarisieren", "pakete-verkaufen"], "badgeIndices": [], "ctaIndex": 0 },
+    { "id": "v31", "theme": "light", "headerIndex": 0, "bulletIds": ["challenges", "pakete-verkaufen", "content-monetarisieren"], "badgeIndices": [6, 8], "ctaIndex": 2 },
+    { "id": "v32", "theme": "light", "headerIndex": 1, "bulletIds": ["content-monetarisieren", "pakete-verkaufen", "skalieren"], "badgeIndices": [], "ctaIndex": 3 },
+    { "id": "v33", "theme": "light", "headerIndex": 2, "bulletIds": ["skalieren", "challenges", "pakete-verkaufen"], "badgeIndices": [0, 2], "ctaIndex": 4 },
+    { "id": "v34", "theme": "light", "headerIndex": 3, "bulletIds": ["pakete-verkaufen", "challenges", "content-monetarisieren"], "badgeIndices": [], "ctaIndex": 0 },
+    { "id": "v35", "theme": "light", "headerIndex": 4, "bulletIds": ["skalieren", "content-monetarisieren", "challenges"], "badgeIndices": [3, 6], "ctaIndex": 1 },
+    { "id": "v36", "theme": "light", "headerIndex": 5, "bulletIds": ["challenges", "pakete-verkaufen", "content-monetarisieren"], "badgeIndices": [], "ctaIndex": 2 },
+    { "id": "v37", "theme": "light", "headerIndex": 0, "bulletIds": ["content-monetarisieren", "skalieren", "pakete-verkaufen"], "badgeIndices": [7, 4], "ctaIndex": 3 },
+    { "id": "v38", "theme": "light", "headerIndex": 1, "bulletIds": ["pakete-verkaufen", "challenges", "content-monetarisieren"], "badgeIndices": [], "ctaIndex": 4 },
+    { "id": "v39", "theme": "light", "headerIndex": 2, "bulletIds": ["content-monetarisieren", "challenges", "skalieren"], "badgeIndices": [1, 5], "ctaIndex": 0 },
+    { "id": "v40", "theme": "light", "headerIndex": 3, "bulletIds": ["skalieren", "pakete-verkaufen", "content-monetarisieren"], "badgeIndices": [], "ctaIndex": 1 }
+  ],
+  "sets": {
+    "de-dark-badges": {
+      "headerIndex": 0,
+      "bulletIds": ["pakete-verkaufen", "challenges", "skalieren"],
+      "badgeIndices": [0, 4],
+      "ctaIndex": 1,
+      "file": "300x250-de-dark-badges.html"
+    },
+    "de-dark-no-badges": {
+      "headerIndex": 0,
+      "bulletIds": ["pakete-verkaufen", "challenges", "skalieren"],
+      "badgeIndices": [],
+      "ctaIndex": 1,
+      "file": "300x250-de-dark-no-badges.html"
+    },
+    "de-light-badges": {
+      "headerIndex": 0,
+      "bulletIds": ["pakete-verkaufen", "challenges", "skalieren"],
+      "badgeIndices": [0, 4],
+      "ctaIndex": 1,
+      "file": "300x250-de-light-badges.html"
+    },
+    "de-light-no-badges": {
+      "headerIndex": 0,
+      "bulletIds": ["pakete-verkaufen", "challenges", "skalieren"],
+      "badgeIndices": [],
+      "ctaIndex": 1,
+      "file": "300x250-de-light-no-badges.html"
+    }
+  }
+}

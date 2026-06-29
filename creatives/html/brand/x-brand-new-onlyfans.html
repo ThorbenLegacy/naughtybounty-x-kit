@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1200, height=675" />
+  <title>NaughtyBounty — New OnlyFans?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --background: #1e1e2c;
+      --foreground: #f4f4fc;
+      --muted-foreground: #9e9ebc;
+      --primary: #a78bfa;
+      --primary-foreground: #f4f4fc;
+      --radius-2xl: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 1200px; height: 675px; overflow: hidden; }
+    body {
+      font-family: Figtree, ui-sans-serif, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--background);
+      color: var(--foreground);
+    }
+    .ad-canvas {
+      width: 1200px; height: 675px; overflow: hidden; position: relative;
+    }
+    .ad-canvas::before {
+      content: "";
+      position: absolute; inset: -30%;
+      background: radial-gradient(circle at 50% 40%, rgba(167, 139, 250, 0.16), transparent 58%);
+      pointer-events: none;
+    }
+    .banner {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; width: 1200px; height: 675px;
+      padding: 22px 48px 52px; text-decoration: none; color: inherit;
+    }
+    .logo {
+      width: var(--logo-size, 360px); height: var(--logo-size, 360px);
+      object-fit: contain; flex-shrink: 0;
+      filter: drop-shadow(0 12px 40px rgba(167, 139, 250, 0.22));
+    }
+    .brand-lockup {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      text-align: center; flex-shrink: 0;
+    }
+    .brand-name-center {
+      font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;
+    }
+    .brand-subtitle-center {
+      font-size: 16px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted-foreground); line-height: 1.15;
+    }
+    .tagline {
+      max-width: 1050px; text-align: center; flex-shrink: 0;
+      font-weight: 900; line-height: 1.05; letter-spacing: -0.025em;
+      color: var(--foreground);
+    }
+    .accent-wrap { display: inline-flex; align-items: baseline; }
+    .accent {
+      border-radius: var(--radius-2xl); background: var(--primary);
+      color: var(--primary-foreground); padding: 0 20px;
+      box-shadow: 0 4px 20px rgba(167, 139, 250, 0.28);
+    }
+    .trust {
+      position: absolute; bottom: 28px; left: 0; right: 0;
+      text-align: center; font-size: 15px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-foreground);
+    }
+
+    .ad-canvas { --logo-size: 360px; }
+    .tagline { font-size: 58px; }
+  </style>
+</head>
+<body>
+  <div class="ad-canvas">
+    <a class="banner" href="https://naughtybounty.com/for-creators">
+      <img class="logo" src="../../../assets/logo_darkmode.svg" alt="NaughtyBounty" width="360" height="360" />
+      <div class="brand-lockup">
+        <span class="brand-name-center">NaughtyBounty</span>
+        <span class="brand-subtitle-center">Adult-Challenge-Marketplace</span>
+      </div>
+      <h1 class="tagline"><span class="accent-wrap"><span class="accent">New</span></span> OnlyFans?</h1>
+    </a>
+    <p class="trust">18+ only · Verifiziert · Du behältst die Kontrolle</p>
+  </div>
+</body>
+</html>

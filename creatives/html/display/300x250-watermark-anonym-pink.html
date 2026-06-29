@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="ad.size" content="width=300,height=250" />
+  <meta name="viewport" content="width=300, height=250" />
+  <title>NaughtyBounty — Anonym Watermark Pink (300×250)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --background: #180610;
+      --foreground: #fff5fa;
+      --primary: #ff1493;
+      --primary-bright: #ff2d9a;
+      --primary-foreground: #ffffff;
+      --border: rgba(255, 105, 180, 0.55);
+      --muted-foreground: rgba(255, 182, 212, 0.85);
+      --radius-2xl: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 300px; height: 250px; overflow: hidden; }
+
+    body {
+      font-family: Figtree, ui-sans-serif, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--background);
+      color: var(--foreground);
+    }
+
+    .ad-canvas {
+      width: 300px;
+      height: 250px;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(145deg, #4a0f32 0%, #180610 55%, #0d0408 100%);
+    }
+
+    .watermark {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .watermark img {
+      width: 240px;
+      height: 240px;
+      object-fit: contain;
+      opacity: 0.1;
+      filter: drop-shadow(0 0 48px rgba(255, 45, 149, 0.35));
+    }
+
+    .ad-canvas::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(255, 20, 147, 0.38), transparent 58%),
+        radial-gradient(circle at 82% 88%, rgba(255, 105, 180, 0.18), transparent 42%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .banner {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      width: 300px;
+      height: 250px;
+      padding: 18px 10px 8px;
+      text-decoration: none;
+      color: inherit;
+      text-align: center;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 0;
+    }
+
+    .header {
+      width: 100%;
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      color: var(--foreground);
+      text-shadow: 0 2px 24px rgba(255, 20, 147, 0.22);
+    }
+
+    .accent-wrap {
+      display: inline-flex;
+      align-items: baseline;
+    }
+
+    .accent {
+      border-radius: var(--radius-2xl);
+      background: linear-gradient(135deg, var(--primary-bright) 0%, var(--primary) 100%);
+      color: var(--primary-foreground);
+      padding: 0 8px;
+      box-shadow: 0 2px 16px rgba(255, 20, 147, 0.5);
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 5px;
+      width: 100%;
+      padding: 0 4px;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 9px 3px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 45, 149, 0.16);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: #ffd6eb;
+      white-space: nowrap;
+      box-shadow: 0 0 20px rgba(255, 20, 147, 0.15);
+    }
+
+    .url {
+      flex-shrink: 0;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: -0.025em;
+      color: var(--muted-foreground);
+      line-height: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="ad-canvas">
+    <div class="watermark" aria-hidden="true">
+      <img
+        src="../../../assets/logo_darkmode.svg"
+        alt=""
+        width="240"
+        height="240"
+      />
+    </div>
+    <a class="banner" href="https://naughtybounty.com/for-creators" target="_blank" rel="noopener noreferrer">
+      <div class="main">
+        <h1 class="header">
+          <span class="accent-wrap"><span class="accent">Anonym</span></span> mit deinen Bildern &amp; Videos Geld verdienen
+        </h1>
+        <div class="badges">
+          <span class="badge">Diskret</span>
+          <span class="badge">Verschlüsselt</span>
+          <span class="badge">Datenschutz</span>
+        </div>
+      </div>
+      <span class="url">naughtybounty.com</span>
+    </a>
+  </div>
+</body>
+</html>

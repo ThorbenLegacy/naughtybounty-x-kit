@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NaughtyBounty X — Content Studio</title>
+  <link rel="icon" href="/assets/logo_small_light.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/assets/logo_small_light.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff; --fg: #18181b; --muted: #71717a; --muted-light: #a1a1aa;
+      --primary: #7511bd; --primary-light: #a78bfa; --card: #fff; --card-muted: #f4f4f5;
+      --border: #e4e4e7; --ok: #16a34a; --err: #dc2626; --warn: #d97706;
+      --shadow: 0 1px 3px rgba(24,24,27,.06), 0 8px 24px rgba(117,17,189,.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Figtree, ui-sans-serif, system-ui, sans-serif;
+      color: var(--fg); background: var(--bg); min-height: 100vh; line-height: 1.5;
+      background: radial-gradient(ellipse 85% 55% at 100% 0%, rgba(117,17,189,.07), transparent 58%), var(--bg);
+    }
+    .wrap { max-width: 1400px; margin: 0 auto; padding: 24px 20px 56px; }
+    .topbar { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; align-items: flex-start; }
+    .brand { display: flex; gap: 14px; align-items: center; }
+    .brand img { width: 48px; height: 48px; }
+    .kicker { font-size: .8125rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--primary); }
+    h1 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 900; margin-top: 4px; }
+    h1 .accent { background: var(--primary); color: #fff; padding: 2px 10px; border-radius: 14px; }
+    .sub { color: var(--muted); margin-top: 6px; max-width: 36rem; }
+    .top-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .pill, .btn {
+      font-family: inherit; font-weight: 600; font-size: .875rem; border-radius: 999px;
+      padding: 10px 18px; cursor: pointer; border: 1px solid var(--border); background: var(--card);
+    }
+    .btn { border: none; background: linear-gradient(135deg, var(--primary-light), var(--primary)); color: #fff; }
+    .btn.secondary { background: var(--card); color: var(--fg); border: 1px solid var(--border); }
+    .btn:disabled { opacity: .55; cursor: wait; }
+    .pill.active { color: var(--primary); border-color: rgba(117,17,189,.3); background: rgba(117,17,189,.06); }
+    .nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; position: sticky; top: 0; z-index: 10;
+      background: rgba(255,255,255,.92); backdrop-filter: blur(8px); padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .nav button { background: none; border: 1px solid transparent; color: var(--muted); padding: 8px 16px; border-radius: 999px; font-weight: 700; cursor: pointer; }
+    .nav button.active { color: var(--primary); border-color: rgba(117,17,189,.25); background: rgba(117,17,189,.06); }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px 20px; box-shadow: var(--shadow); }
+    .card h3 { font-size: .95rem; font-weight: 800; margin-bottom: 12px; }
+    label { display: block; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--muted-light); margin: 10px 0 4px; }
+    input, select, textarea {
+      width: 100%; font: inherit; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card-muted);
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+    .status { font-size: .78rem; color: var(--muted); }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+    .preview-viewport {
+      width: min(100%, 380px);
+      margin: 0 auto;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #1e1e2c;
+      position: relative;
+    }
+    .preview-viewport.light-bg { background: #f4f4f5; }
+    .preview-viewport iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1200px;
+      height: 675px;
+      border: 0;
+      transform-origin: 0 0;
+    }
+    .preview-img-wrap {
+      width: min(100%, 380px);
+      margin: 10px auto 0;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--card-muted);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .preview-img-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .list { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow: auto; }
+    .list-item {
+      padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; background: var(--card-muted);
+    }
+    .list-item:hover, .list-item.selected { border-color: rgba(117,17,189,.35); background: rgba(117,17,189,.06); }
+    .list-item small { color: var(--muted); display: block; font-size: .75rem; margin-top: 2px; }
+    .scheme-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+    .scheme-toggle button { border: none; background: var(--card-muted); padding: 8px 14px; font-weight: 700; cursor: pointer; font-size: .8rem; }
+    .scheme-toggle button.active { background: var(--primary); color: #fff; }
+    .post-editor { border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 12px; background: var(--card-muted); cursor: grab; display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 16px; align-items: start; }
+    .post-editor.dragging { opacity: .5; }
+    .post-preview-wrap { position: sticky; top: 72px; }
+    .post-preview {
+      border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+      background: #1e1e2c; position: relative; width: 100%;
+    }
+    .post-preview.light-bg { background: #f4f4f5; }
+    .post-preview img, .post-preview video {
+      width: 100%; height: auto; max-height: 170px; object-fit: contain; display: block;
+      background: #1e1e2c;
+    }
+    .post-preview.light-bg img, .post-preview.light-bg video { background: #f4f4f5; }
+    .post-preview-scaler {
+      width: 100%; overflow: hidden; position: relative;
+    }
+    .post-preview-scaler iframe {
+      position: absolute; top: 0; left: 0;
+      width: 1200px; height: 675px; border: 0;
+      transform-origin: 0 0;
+    }
+    .post-preview-empty {
+      aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center;
+      padding: 16px; text-align: center; color: var(--muted); font-size: .78rem; line-height: 1.4;
+      background: var(--card-muted); border: 1px dashed var(--border); border-radius: 12px;
+    }
+    .post-preview-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted-light); margin-bottom: 6px; }
+    .post-fields { min-width: 0; }
+    @media (max-width: 900px) { .post-editor { grid-template-columns: 1fr; } .post-preview-wrap { position: static; } }
+    .post-editor h4 { font-size: .85rem; margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .badge { font-size: .65rem; font-weight: 700; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; background: rgba(117,17,189,.1); color: var(--primary); }
+    .badge.light { background: #fff; border: 1px solid var(--border); color: var(--muted); }
+    .badge.dark { background: #1e1e2c; color: #c4b5fd; }
+    .hint { font-size: .8rem; color: var(--muted); margin-top: 8px; }
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 16px; padding: 24px; text-align: center; color: var(--muted);
+      cursor: pointer; transition: border-color .15s;
+    }
+    .upload-zone:hover { border-color: var(--primary); color: var(--primary); }
+    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; }
+    .media-thumb { border-radius: 12px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; }
+    .media-thumb img, .media-thumb video { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+    .media-thumb p { font-size: .7rem; padding: 6px; word-break: break-all; color: var(--muted); }
+    .json-editor { font-family: ui-monospace, monospace; font-size: .78rem; min-height: 320px; }
+    .html-editor {
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+      font-size: .75rem; line-height: 1.45; min-height: 420px; tab-size: 2;
+      white-space: pre; overflow: auto;
+    }
+    .editor-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <img src="/assets/logo_small_light.svg" alt="" width="48" height="48" />
+        <div>
+          <div class="kicker">X Marketing · Content Studio</div>
+          <h1>Wortings · Creatives · <span class="accent">Scheduler</span></h1>
+          <p class="sub">Brand, Bullets &amp; Cards bearbeiten · PNG exportieren · Wochenplan &amp; Medien verwalten</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="scheme-toggle" id="globalScheme">
+          <button type="button" data-scheme="dark" class="active">Dark</button>
+          <button type="button" data-scheme="light">Light</button>
+        </div>
+        <a href="/" class="pill" style="text-decoration:none;color:inherit">Command Board</a>
+        <a href="/prospect" class="pill" style="text-decoration:none;color:inherit">Creator-Finder</a>
+        <a href="/logout" class="pill" style="text-decoration:none;color:inherit">Abmelden</a>
+      </div>
+    </header>
+
+    <nav class="nav" id="mainNav">
+      <button type="button" data-panel="wordings" class="active">Wortings</button>
+      <button type="button" data-panel="custom-html">Custom HTML</button>
+      <button type="button" data-panel="creatives">Creatives &amp; PNG</button>
+      <button type="button" data-panel="scheduler">Wochenplan</button>
+      <button type="button" data-panel="media">Medien</button>
+    </nav>
+
+    <!-- WORTINGS -->
+    <section class="panel active" id="panel-wordings">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Config-Quelle</h3>
+          <select id="configSelect"></select>
+          <div class="list" id="variantList" style="margin-top:12px"></div>
+        </div>
+        <div class="card">
+          <h3>Editor</h3>
+          <div id="wordingForm"><p class="hint">Links eine Variante wählen.</p></div>
+          <div class="row">
+            <button class="btn" id="saveConfigBtn" disabled>Speichern</button>
+            <button class="btn secondary" id="buildHtmlBtn">HTML neu bauen</button>
+            <button class="btn secondary" id="openHtmlEditorBtn" disabled>HTML im Editor</button>
+          </div>
+          <p class="status" id="wordingStatus"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUSTOM HTML -->
+    <section class="panel" id="panel-custom-html">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Eigenes HTML (1200×675)</h3>
+          <p class="hint">Volles HTML einfügen · Screenshot-Ziel: <code>.ad-canvas</code> · Dark/Light getrennt speichern</p>
+          <div class="editor-toolbar">
+            <select id="importCreativeSelect" style="flex:1;min-width:180px" title="Bestehendes Creative-HTML laden">
+              <option value="">— Creative-Template laden —</option>
+            </select>
+            <button type="button" class="btn secondary" id="importCreativeBtn">In Editor laden</button>
+          </div>
+          <div class="editor-toolbar">
+            <select id="customSlugSelect" style="max-width:200px"><option value="">— Custom speichern —</option></select>
+            <input id="customSlugNew" placeholder="neuer-slug" style="max-width:160px" />
+            <button type="button" class="btn secondary" id="customNewBtn">Neu</button>
+          </div>
+          <textarea class="html-editor" id="customHtmlEditor" spellcheck="false" placeholder="<!DOCTYPE html>…"></textarea>
+          <div class="row">
+            <button class="btn" id="customSaveBtn" disabled>Speichern</button>
+            <button class="btn secondary" id="customTemplateBtn">Vorlage laden</button>
+            <button class="btn secondary" id="customExportBtn" disabled>PNG exportieren</button>
+            <button class="btn secondary" id="customDeleteBtn" disabled>Löschen</button>
+          </div>
+          <p class="status" id="customStatus"></p>
+        </div>
+        <div class="card">
+          <h3>Live-Vorschau · <span id="customPreviewScheme">Dark</span></h3>
+          <div class="preview-viewport" id="customPreviewViewport">
+            <iframe id="customHtmlPreview" title="Custom HTML Preview"></iframe>
+          </div>
+          <p class="hint">Vorschau aktualisiert beim Tippen (ohne Speichern). Nach Speichern: PNG exportieren oder im Wochenplan als <code>custom/dein-slug</code> nutzen.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CREATIVES -->
+    <section class="panel" id="panel-creatives">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Creative wählen</h3>
+          <select id="creativeSelect"></select>
+          <div class="row">
+            <button class="btn" id="exportPngBtn">PNG exportieren</button>
+            <button class="btn secondary" id="exportBothBtn">Dark + Light PNG</button>
+          </div>
+          <p class="status" id="exportStatus"></p>
+          <p class="hint">Exportiert 1200×675 PNG via Playwright (wie npm run export).</p>
+        </div>
+        <div class="card">
+          <h3>Vorschau · <span id="previewSchemeLabel">Dark</span></h3>
+          <div class="preview-viewport" id="creativePreviewViewport">
+            <iframe id="creativePreview" title="Creative Preview"></iframe>
+          </div>
+          <div class="preview-img-wrap" id="pngPreviewWrap" style="display:none">
+            <img id="pngPreview" alt="" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCHEDULER -->
+    <section class="panel" id="panel-scheduler">
+      <div class="card" style="margin-bottom:16px">
+        <div class="row" style="margin-top:0">
+          <label style="margin:0">Woche</label>
+          <select id="weekSelect" style="max-width:280px"></select>
+          <button class="btn secondary" id="loadWeekBtn">Laden</button>
+          <button class="btn" id="saveWeekBtn">Woche speichern</button>
+          <button class="btn secondary" id="rebuildWeekBtn">posts-week.json bauen</button>
+        </div>
+        <p class="hint">Posts per Drag &amp; Drop umsortieren · Creative-Vorschau links · PNG/HTML/Video sichtbar</p>
+        <p class="status" id="weekStatus"></p>
+      </div>
+      <div id="postsEditor"></div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn secondary" id="saveFlatBtn">Reihenfolge → posts-week.json</button>
+      </div>
+    </section>
+
+    <!-- MEDIA -->
+    <section class="panel" id="panel-media">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Bild / Video hochladen</h3>
+          <div class="upload-zone" id="uploadZone">
+            <p>Datei hier ablegen oder klicken</p>
+            <p class="hint">PNG, JPG, WebP, MP4, WebM · max. 512 MB</p>
+          </div>
+          <input type="file" id="fileInput" accept="image/*,video/*" hidden />
+          <p class="status" id="uploadStatus"></p>
+        </div>
+        <div class="card">
+          <h3>Bibliothek</h3>
+          <div class="media-grid" id="mediaGrid"></div>
+          <p class="hint">Klick kopiert Pfad — im Wochenplan als Medien-Pfad einfügen.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+    let meta = { configs: [], creatives: [], weeks: [], activeWeek: null, uploads: [] };
+    let globalScheme = "dark";
+    let currentConfigKey = null;
+    let currentConfigData = null;
+    let selectedVariantIndex = -1;
+    let weekData = null;
+    let flatPosts = [];
+    let activeWeekFile = null;
+    let customSlug = "";
+    let customDefaults = { dark: "", light: "" };
+    let customPreviewTimer = null;
+
+    const PREVIEW_W = 1200;
+    const PREVIEW_H = 675;
+
+    function scalePreviewViewport(viewport) {
+      if (!viewport) return;
+      const iframe = viewport.querySelector("iframe");
+      if (!iframe) return;
+      const w = viewport.clientWidth || 380;
+      const scale = w / PREVIEW_W;
+      iframe.style.transform = `scale(${scale})`;
+      viewport.style.height = `${Math.round(PREVIEW_H * scale)}px`;
+    }
+
+    function scalePostPreviewScaler(scaler) {
+      if (!scaler) return;
+      const iframe = scaler.querySelector("iframe");
+      if (!iframe) return;
+      const w = scaler.clientWidth;
+      const scale = w / PREVIEW_W;
+      iframe.style.transform = `scale(${scale})`;
+      scaler.style.height = `${Math.round(PREVIEW_H * scale)}px`;
+    }
+
+    function scaleAllPreviews() {
+      scalePreviewViewport($("#customPreviewViewport"));
+      scalePreviewViewport($("#creativePreviewViewport"));
+      $$(".post-preview-scaler").forEach(scalePostPreviewScaler);
+    }
+
+    window.addEventListener("resize", scaleAllPreviews);
+    $("#creativePreview")?.addEventListener("load", () => requestAnimationFrame(scaleAllPreviews));
+    $("#customHtmlPreview")?.addEventListener("load", () => requestAnimationFrame(scaleAllPreviews));
+
+    async function api(path, opts = {}) {
+      const res = await fetch(path, {
+        credentials: "same-origin",
+        headers: opts.body ? { "Content-Type": "application/json" } : undefined,
+        ...opts,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      return data;
+    }
+
+    function templateHtmlCandidates(creativeId, scheme) {
+      const [kind, name] = creativeId.split("/", 2);
+      if (!kind || !name) return [];
+      const suffix = scheme === "light" ? "-light" : "";
+      if (kind === "custom") return [`custom/${scheme}/${name}.html`];
+      if (kind === "brand") return [`brand${suffix}/x-brand-${name}.html`, `brand${suffix}/x-brand-${name}-standalone.html`];
+      if (kind === "brand-users") return [`brand-users${suffix}/x-brand-u-${name}.html`, `brand-users${suffix}/x-brand-u-${name}-standalone.html`];
+      if (kind === "bullets") return [`bullets${suffix}/x-bullets-${name === "default" ? "default" : name}.html`, `bullets${suffix}/x-bullets-${name === "default" ? "default" : name}-standalone.html`];
+      if (kind === "bullets-users") return [`bullets-users${suffix}/x-bullets-u-default.html`, `bullets-users${suffix}/x-bullets-u-default-standalone.html`];
+      if (kind === "cards") return [`cards${suffix}/x-card-${name}.html`, `cards${suffix}/x-card-${name}-standalone.html`];
+      return [];
+    }
+
+    async function fetchTemplateHtmlDirect(creativeId, scheme) {
+      const candidates = templateHtmlCandidates(creativeId, scheme);
+      let lastErr = "";
+      for (const rel of candidates) {
+        const res = await fetch(`/creatives/html/${rel}?t=${Date.now()}`, { credentials: "same-origin" });
+        if (res.ok) {
+          const html = await res.text();
+          if (html.trim().length > 40) return { html, path: rel };
+        } else {
+          lastErr = `${rel}: ${res.status}`;
+        }
+      }
+      throw new Error(`HTML nicht gefunden (${lastErr || creativeId}) — „HTML neu bauen“ in Wortings`);
+    }
+
+    async function importTemplateHtml(creativeId) {
+      if (!creativeId || creativeId.includes("undefined")) {
+        throw new Error("Creative-ID ungültig — Variante neu wählen");
+      }
+      let data;
+      try {
+        data = await api(`/api/studio/template-html?creative=${encodeURIComponent(creativeId)}&theme=${globalScheme}`);
+      } catch {
+        data = await fetchTemplateHtmlDirect(creativeId, globalScheme);
+      }
+      if (!data?.html?.trim()) throw new Error("HTML-Datei ist leer");
+      $("#customHtmlEditor").value = data.html;
+      refreshCustomPreview();
+      setStatus($("#customStatus"), `Template geladen: ${data.path}`, true);
+      return data;
+    }
+
+    function refreshCustomPreview() {
+      const html = $("#customHtmlEditor").value;
+      const frame = $("#customHtmlPreview");
+      frame.srcdoc = html || "<p style='padding:24px;color:#888'>HTML eingeben…</p>";
+      requestAnimationFrame(scaleAllPreviews);
+    }
+
+    function setStatus(el, msg, ok) {
+      el.textContent = msg;
+      el.className = "status" + (ok === true ? " ok" : ok === false ? " err" : "");
+    }
+
+    // Nav
+    $$("#mainNav button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        $$("#mainNav button").forEach((b) => b.classList.toggle("active", b === btn));
+        $$(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + btn.dataset.panel));
+        if (btn.dataset.panel === "scheduler") loadWeekEditor();
+        if (btn.dataset.panel === "media") refreshMedia();
+        if (btn.dataset.panel === "custom-html") loadCustomPanel().finally(() => requestAnimationFrame(scaleAllPreviews));
+        if (btn.dataset.panel === "creatives") requestAnimationFrame(scaleAllPreviews);
+      });
+    });
+
+    $$("#globalScheme button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        globalScheme = btn.dataset.scheme;
+        $$("#globalScheme button").forEach((b) => b.classList.toggle("active", b === btn));
+        $("#previewSchemeLabel").textContent = globalScheme === "light" ? "Light" : "Dark";
+        $("#customPreviewScheme").textContent = globalScheme === "light" ? "Light" : "Dark";
+        refreshCreativePreview();
+        refreshCustomPreview();
+        if (customSlug) loadCustomHtml(customSlug);
+      });
+    });
+
+    async function loadMeta() {
+      meta = await api("/api/studio/meta");
+      const sel = $("#configSelect");
+      sel.innerHTML = meta.configs.map((c) => `<option value="${c.key}">${c.label}</option>`).join("");
+      $("#creativeSelect").innerHTML = meta.creatives.map((c) =>
+        `<option value="${c.id}">${c.label} (${c.id})</option>`).join("");
+      $("#weekSelect").innerHTML = meta.weeks.map((w) =>
+        `<option value="${w}" ${w === meta.activeWeek ? "selected" : ""}>${w}</option>`).join("");
+      activeWeekFile = meta.activeWeek;
+      currentConfigKey = meta.configs[0]?.key;
+      if (currentConfigKey) await loadConfig(currentConfigKey);
+      customDefaults = meta.defaultCustomHtml || customDefaults;
+      renderCustomSlugSelect();
+      renderImportCreativeSelect();
+      refreshCreativePreview();
+    }
+
+    async function loadConfig(key) {
+      currentConfigKey = key;
+      currentConfigData = await api(`/api/studio/config/${key}`);
+      selectedVariantIndex = -1;
+      renderVariantList();
+      $("#wordingForm").innerHTML = '<p class="hint">Variante wählen.</p>';
+      $("#saveConfigBtn").disabled = true;
+      $("#openHtmlEditorBtn").disabled = true;
+    }
+
+    function creativeIdForSelection() {
+      const m = configMeta();
+      if (!m || selectedVariantIndex < 0) return null;
+      if (m.kind === "object") {
+        return m.creativeSlug ?? `${m.creativePrefix}/default`;
+      }
+      const item = currentConfigData?.[selectedVariantIndex];
+      if (!item?.id) return null;
+      return `${m.creativePrefix}/${item.id}`;
+    }
+
+    function configMeta() {
+      return meta.configs.find((c) => c.key === currentConfigKey);
+    }
+
+    function renderVariantList() {
+      const list = $("#variantList");
+      const m = configMeta();
+      if (!m) return;
+      if (m.kind === "object") {
+        list.innerHTML = `<div class="list-item selected" data-idx="0"><strong>${m.label}</strong><small>Einzelnes Template</small></div>`;
+        selectedVariantIndex = 0;
+        renderWordingForm();
+        $("#saveConfigBtn").disabled = false;
+        $("#openHtmlEditorBtn").disabled = false;
+        return;
+      }
+      const items = currentConfigData || [];
+      if (selectedVariantIndex < 0 && items.length) selectedVariantIndex = 0;
+      list.innerHTML = items.map((it, i) =>
+        `<div class="list-item${i === selectedVariantIndex ? " selected" : ""}" data-idx="${i}">
+          <strong>${it.title || it.id}</strong><small>${it.id}</small></div>`).join("");
+      list.querySelectorAll(".list-item").forEach((el) => {
+        el.addEventListener("click", () => {
+          selectedVariantIndex = Number(el.dataset.idx);
+        renderVariantList();
+        renderWordingForm();
+        $("#saveConfigBtn").disabled = false;
+        $("#openHtmlEditorBtn").disabled = false;
+      });
+      });
+      if (selectedVariantIndex >= 0) {
+        renderWordingForm();
+        $("#saveConfigBtn").disabled = false;
+        $("#openHtmlEditorBtn").disabled = false;
+      }
+    }
+
+    function field(name, value, multiline = false) {
+      if (multiline) return `<label>${name}</label><textarea data-field="${name}">${value ?? ""}</textarea>`;
+      return `<label>${name}</label><input data-field="${name}" value="${String(value ?? "").replace(/"/g, "&quot;")}" />`;
+    }
+
+    function renderWordingForm() {
+      const m = configMeta();
+      if (!m || selectedVariantIndex < 0) return;
+      const item = m.kind === "object" ? currentConfigData : currentConfigData[selectedVariantIndex];
+      const form = $("#wordingForm");
+      if (m.key.startsWith("brand")) {
+        form.innerHTML = [
+          field("id", item.id),
+          field("title", item.title),
+          field("fontSize", item.fontSize),
+          field("logoSize", item.logoSize),
+          field("tagline", item.tagline, true),
+          field("trust", item.trust),
+          field("href", item.href),
+        ].join("");
+      } else if (m.key.startsWith("bullets")) {
+        const bullets = (item.bullets || []).map((b, i) =>
+          `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+            <strong>Bullet ${i + 1}</strong>
+            ${field(`bullets.${i}.title`, b.title)}
+            ${field(`bullets.${i}.description`, b.description, true)}
+          </div>`).join("");
+        form.innerHTML = [
+          field("headlinePre", item.headlinePre),
+          field("headlineAccent", item.headlineAccent),
+          field("badge", item.badge),
+          field("cta", item.cta),
+          bullets,
+        ].join("");
+      } else {
+        const points = (item.points || []).map((p, i) =>
+          `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+            <strong>Punkt ${i + 1}</strong>
+            ${field(`points.${i}.title`, p.title)}
+            ${field(`points.${i}.description`, p.description, true)}
+          </div>`).join("");
+        form.innerHTML = [
+          field("id", item.id),
+          field("kicker", item.kicker),
+          field("headlinePre", item.headlinePre),
+          field("headlineAccent", item.headlineAccent),
+          field("headlinePost", item.headlinePost),
+          field("badge", item.badge),
+          field("cta", item.cta),
+          field("urlLine", item.urlLine),
+          field("href", item.href),
+          points,
+        ].join("");
+      }
+    }
+
+    function collectFormData() {
+      const m = configMeta();
+      const base = m.kind === "object"
+        ? { ...currentConfigData }
+        : currentConfigData.map((x) => ({ ...x }));
+      const item = m.kind === "object" ? base : base[selectedVariantIndex];
+      $$("[data-field]", $("#wordingForm")).forEach((el) => {
+        const key = el.dataset.field;
+        let val = el.value;
+        if (key === "fontSize" || key === "logoSize") val = Number(val);
+        if (key.includes(".")) {
+          const [arr, idx, prop] = key.match(/(\w+)\.(\d+)\.(\w+)/).slice(1);
+          item[arr][Number(idx)][prop] = val;
+        } else {
+          item[key] = val;
+        }
+      });
+      return base;
+    }
+
+    $("#configSelect").addEventListener("change", (e) => loadConfig(e.target.value));
+
+    $("#saveConfigBtn").addEventListener("click", async () => {
+      const st = $("#wordingStatus");
+      try {
+        const data = collectFormData();
+        await api(`/api/studio/config/${currentConfigKey}`, { method: "PUT", body: JSON.stringify(data) });
+        currentConfigData = data;
+        setStatus(st, "Gespeichert.", true);
+        meta = await api("/api/studio/meta");
+        $("#creativeSelect").innerHTML = meta.creatives.map((c) =>
+          `<option value="${c.id}">${c.label} (${c.id})</option>`).join("");
+      } catch (e) {
+        setStatus(st, e.message, false);
+      }
+    });
+
+    $("#buildHtmlBtn").addEventListener("click", async () => {
+      const st = $("#wordingStatus");
+      setStatus(st, "Baue HTML …");
+      try {
+        await api("/api/studio/build", { method: "POST", body: "{}" });
+        setStatus(st, "HTML gebaut — Vorschau aktualisieren.", true);
+        meta = await api("/api/studio/meta");
+        renderImportCreativeSelect();
+        refreshCreativePreview();
+      } catch (e) {
+        setStatus(st, e.message, false);
+      }
+    });
+
+    $("#openHtmlEditorBtn").addEventListener("click", async () => {
+      const creativeId = creativeIdForSelection();
+      if (!creativeId) {
+        setStatus($("#wordingStatus"), "Bitte zuerst eine Variante wählen.", false);
+        return;
+      }
+      openCustomHtmlTab();
+      setStatus($("#customStatus"), "Lade HTML …");
+      try {
+        await importTemplateHtml(creativeId);
+        $("#importCreativeSelect").value = creativeId;
+        setStatus($("#wordingStatus"), `HTML geladen: ${creativeId}`, true);
+      } catch (e) {
+        setStatus($("#customStatus"), e.message, false);
+        setStatus($("#wordingStatus"), e.message + " — ggf. „HTML neu bauen“ klicken.", false);
+      }
+    });
+
+    $("#importCreativeBtn").addEventListener("click", async () => {
+      const id = $("#importCreativeSelect").value;
+      if (!id) {
+        setStatus($("#customStatus"), "Creative wählen", false);
+        return;
+      }
+      const btn = $("#importCreativeBtn");
+      btn.disabled = true;
+      setStatus($("#customStatus"), "Lade HTML …");
+      try {
+        await importTemplateHtml(id);
+      } catch (e) {
+        setStatus($("#customStatus"), e.message, false);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    $("#importCreativeSelect").addEventListener("change", async (e) => {
+      if (!e.target.value) return;
+      setStatus($("#customStatus"), "Lade HTML …");
+      try {
+        await importTemplateHtml(e.target.value);
+      } catch (err) {
+        setStatus($("#customStatus"), err.message, false);
+      }
+    });
+
+    async function refreshCreativePreview() {
+      const creative = $("#creativeSelect").value;
+      if (!creative) return;
+      try {
+        const p = await api(`/api/studio/preview-path?creative=${encodeURIComponent(creative)}&theme=${globalScheme}`);
+        $("#creativePreview").src = p.html + "?t=" + Date.now();
+        const imgWrap = $("#pngPreviewWrap");
+        const img = $("#pngPreview");
+        imgWrap.style.display = "flex";
+        img.src = p.png + "?t=" + Date.now();
+        img.onerror = () => { imgWrap.style.display = "none"; };
+        requestAnimationFrame(scaleAllPreviews);
+      } catch {
+        $("#creativePreview").src = "about:blank";
+        requestAnimationFrame(scaleAllPreviews);
+      }
+    }
+
+    $("#creativeSelect").addEventListener("change", refreshCreativePreview);
+
+    async function exportPng(theme) {
+      const st = $("#exportStatus");
+      setStatus(st, "Exportiere …");
+      try {
+        const r = await api("/api/studio/export", {
+          method: "POST",
+          body: JSON.stringify({ creative: $("#creativeSelect").value, theme }),
+        });
+        setStatus(st, "Fertig: " + (r.paths || []).join(", "), true);
+        refreshCreativePreview();
+      } catch (e) {
+        setStatus(st, e.message, false);
+      }
+    }
+
+    $("#exportPngBtn").addEventListener("click", () => exportPng(globalScheme));
+    $("#exportBothBtn").addEventListener("click", () => exportPng("both"));
+
+    // Week scheduler
+    async function loadWeekEditor() {
+      const file = $("#weekSelect").value || activeWeekFile;
+      if (!file) return;
+      activeWeekFile = file;
+      try {
+        weekData = await api(`/api/studio/week/${encodeURIComponent(file)}`);
+        flatPosts = weekData.days.flatMap((d) =>
+          d.posts.map((p) => inferCreativeFromPost({ ...p, dayDate: d.date, dayLabel: d.label })));
+        renderPostsEditor();
+        setStatus($("#weekStatus"), `${flatPosts.length} Posts geladen (${file})`, true);
+      } catch (e) {
+        setStatus($("#weekStatus"), e.message, false);
+      }
+    }
+
+    function renderPostsEditor() {
+      const root = $("#postsEditor");
+      root.innerHTML = flatPosts.map((p, i) => postCardHtml(p, i)).join("");
+      root.querySelectorAll(".post-editor").forEach((el) => {
+        el.draggable = true;
+        el.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("text/plain", el.dataset.idx);
+          el.classList.add("dragging");
+        });
+        el.addEventListener("dragend", () => el.classList.remove("dragging"));
+        el.addEventListener("dragover", (e) => e.preventDefault());
+        el.addEventListener("drop", (e) => {
+          e.preventDefault();
+          const from = Number(e.dataTransfer.getData("text/plain"));
+          const to = Number(el.dataset.idx);
+          if (from === to) return;
+          const [moved] = flatPosts.splice(from, 1);
+          flatPosts.splice(to, 0, moved);
+          renderPostsEditor();
+        });
+        el.querySelectorAll("[data-prop]").forEach((input) => {
+          input.addEventListener("change", () => {
+            const idx = Number(el.dataset.idx);
+            const prop = input.dataset.prop;
+            let val = input.value;
+            if (prop === "hashtags") val = val.split(/[\s,]+/).filter(Boolean);
+            flatPosts[idx][prop] = val;
+            if (prop === "creative" && val) {
+              applyCreativePath(flatPosts[idx], val);
+              flatPosts[idx].mediaType = "creative";
+              const imgInput = el.querySelector('[data-prop="image"]');
+              if (imgInput) imgInput.value = flatPosts[idx].image || "";
+            }
+            if (prop === "creative" || prop === "image") {
+              updatePostPreview(el, flatPosts[idx]);
+            }
+          });
+          if (input.dataset.prop === "image") {
+            input.addEventListener("input", () => {
+              const idx = Number(el.dataset.idx);
+              flatPosts[idx].image = input.value;
+              updatePostPreview(el, flatPosts[idx]);
+            });
+          }
+        });
+        updatePostPreview(el, flatPosts[Number(el.dataset.idx)]);
+        el.querySelector("[data-scheme-post]")?.addEventListener("click", (e) => {
+          const btn = e.target.closest("button");
+          if (!btn) return;
+          const idx = Number(el.dataset.idx);
+          flatPosts[idx].colorScheme = btn.dataset.scheme;
+          if (flatPosts[idx].creative) applyCreativePath(flatPosts[idx], flatPosts[idx].creative);
+          renderPostsEditor();
+        });
+        el.querySelector("[data-use-media]")?.addEventListener("click", () => {
+          const path = prompt("Medien-Pfad (z.B. uploads/demo.mp4):", flatPosts[Number(el.dataset.idx)].image || "");
+          if (!path) return;
+          const idx = Number(el.dataset.idx);
+          flatPosts[idx].image = path;
+          flatPosts[idx].mediaType = /\.(mp4|webm|mov)$/i.test(path) ? "video" : "image";
+          renderPostsEditor();
+        });
+      });
+      requestAnimationFrame(scaleAllPreviews);
+    }
+
+    function applyCreativePath(post, creative) {
+      const [kind, name] = creative.split("/", 2);
+      const root = post.colorScheme === "light" ? "exports-light" : "exports";
+      if (kind === "custom") post.image = `${root}/custom/${name}.png`;
+      else if (kind === "brand") post.image = `${root}/brand/${name}.png`;
+      else if (kind === "brand-users") post.image = `${root}/brand-users/${name}.png`;
+      else if (kind === "cards") post.image = `${root}/cards/${name}.png`;
+      else if (kind === "bullets") post.image = `${root}/bullets/default.png`;
+      post.mediaType = "creative";
+    }
+
+    function imagePathForPost(post) {
+      if (post.image?.startsWith("uploads/")) return `/${post.image}`;
+      if (post.image) {
+        const p = post.image.startsWith("/") ? post.image : `/${post.image}`;
+        const scheme = post.colorScheme || "dark";
+        if (scheme === "light" && p.includes("/exports/") && !p.includes("/exports-light/")) {
+          return p.replace("/exports/", "/exports-light/");
+        }
+        if (scheme === "dark" && p.includes("/exports-light/")) {
+          return p.replace("/exports-light/", "/exports/");
+        }
+        return p;
+      }
+      if (post.creative) {
+        const tmp = { ...post };
+        applyCreativePath(tmp, post.creative);
+        return tmp.image ? `/${tmp.image}` : null;
+      }
+      return null;
+    }
+
+    function htmlPreviewUrl(creative, scheme) {
+      if (!creative) return null;
+      const [kind, name] = creative.split("/", 2);
+      const suffix = scheme === "light" ? "-light" : "";
+      const map = {
+        brand: `brand${suffix}/x-brand-${name}-standalone.html`,
+        "brand-users": `brand-users${suffix}/x-brand-u-${name}-standalone.html`,
+        bullets: `bullets${suffix}/x-bullets-${name === "default" ? "default" : name}-standalone.html`,
+        "bullets-users": `bullets-users${suffix}/x-bullets-u-default-standalone.html`,
+        cards: `cards${suffix}/x-card-${name}-standalone.html`,
+        custom: `custom/${scheme}/${name}.html`,
+      };
+      const rel = map[kind];
+      return rel ? `/creatives/html/${rel}` : null;
+    }
+
+    function updatePostPreview(el, post) {
+      const wrap = el.querySelector("[data-post-preview]");
+      if (!wrap) return;
+      const scheme = post.colorScheme || "dark";
+      const imgPath = imagePathForPost(post);
+      const isVideo = post.mediaType === "video" || (imgPath && /\.(mp4|webm|mov)$/i.test(imgPath));
+      const htmlUrl = post.creative ? htmlPreviewUrl(post.creative, scheme) : null;
+
+      if (isVideo && imgPath) {
+        wrap.innerHTML = `<div class="post-preview-label">Video</div><div class="post-preview ${scheme === "light" ? "light-bg" : ""}"><video src="${imgPath}" muted loop playsinline controls></video></div>`;
+        return;
+      }
+      if (imgPath && !imgPath.match(/\.(mp4|webm|mov)$/i)) {
+        wrap.innerHTML = `<div class="post-preview-label">PNG · ${scheme}</div><div class="post-preview ${scheme === "light" ? "light-bg" : ""}"><img src="${imgPath}?t=${Date.now()}" alt="" data-fallback-html="${htmlUrl || ""}" /></div>`;
+        const img = wrap.querySelector("img");
+        img.onerror = () => {
+          const fb = img.dataset.fallbackHtml;
+          if (fb) {
+            wrap.innerHTML = `<div class="post-preview-label">HTML · ${scheme}</div><div class="post-preview ${scheme === "light" ? "light-bg" : ""}"><div class="post-preview-scaler"><iframe src="${fb}?t=${Date.now()}" title="Creative"></iframe></div></div>`;
+            requestAnimationFrame(() => scalePostPreviewScaler(wrap.querySelector(".post-preview-scaler")));
+          } else {
+            wrap.innerHTML = `<div class="post-preview-empty">PNG fehlt — npm run export oder HTML bauen</div>`;
+          }
+        };
+        return;
+      }
+      if (htmlUrl) {
+        wrap.innerHTML = `<div class="post-preview-label">HTML · ${scheme}</div><div class="post-preview ${scheme === "light" ? "light-bg" : ""}"><div class="post-preview-scaler"><iframe src="${htmlUrl}?t=${Date.now()}" title="Creative"></iframe></div></div>`;
+        requestAnimationFrame(() => scalePostPreviewScaler(wrap.querySelector(".post-preview-scaler")));
+        return;
+      }
+      wrap.innerHTML = `<div class="post-preview-empty">Kein Creative — oben auswählen oder Medien hochladen</div>`;
+    }
+
+    function inferCreativeFromPost(p) {
+      if (p.creative) return p;
+      const img = p.image || "";
+      const m = img.match(/\/(brand-users|brand|cards|bullets-users|bullets|custom)\/([^./]+)/);
+      if (!m) return p;
+      const kind = m[1];
+      const name = m[2];
+      if (kind === "bullets") return { ...p, creative: "bullets/default" };
+      if (kind === "bullets-users") return { ...p, creative: "bullets-users/default" };
+      return { ...p, creative: `${kind}/${name}` };
+    }
+
+    function postCardHtml(p, i) {
+      const post = inferCreativeFromPost(p);
+      if (!p.creative && post.creative) flatPosts[i] = post;
+      const scheme = post.colorScheme || "dark";
+      const creativeOpts = meta.creatives.map((c) =>
+        `<option value="${c.id}" ${post.creative === c.id || post.image?.includes(c.id.split("/")[1]) ? "selected" : ""}>${c.id}</option>`).join("");
+      return `<article class="post-editor" data-idx="${i}">
+        <div class="post-preview-wrap" data-post-preview></div>
+        <div class="post-fields">
+          <h4>
+            <span class="badge">${i + 1}</span>
+            <span class="badge ${scheme}">${scheme}</span>
+            <span class="badge">${post.dayLabel || ""} ${post.time || ""}</span>
+            <code style="font-size:.72rem">${post.id}</code>
+          </h4>
+          <label>Creative</label>
+          <select data-prop="creative">${creativeOpts}<option value="">— keins / Upload —</option></select>
+          <label>Tweet-Text</label>
+          <textarea data-prop="text" rows="4">${post.text || ""}</textarea>
+          <label>Hashtags (Leerzeichen-getrennt)</label>
+          <input data-prop="hashtags" value="${(post.hashtags || []).join(" ")}" />
+          <label>Link</label>
+          <input data-prop="link" value="${post.link || ""}" />
+          <label>Bild/Video-Pfad</label>
+          <input data-prop="image" value="${post.image || ""}" />
+          <div class="row">
+            <div class="scheme-toggle" data-scheme-post>
+              <button type="button" data-scheme="dark" class="${scheme === "dark" ? "active" : ""}">Dark</button>
+              <button type="button" data-scheme="light" class="${scheme === "light" ? "active" : ""}">Light</button>
+            </div>
+            <button type="button" class="btn secondary" data-use-media>Medien wählen</button>
+          </div>
+        </div>
+      </article>`;
+    }
+
+    function weekFromFlat() {
+      const slots = weekData.slots || ["07:55", "11:57", "16:13"];
+      const perDay = slots.length;
+      let i = 0;
+      const days = weekData.days.map((day) => {
+        const posts = [];
+        for (let s = 0; s < perDay && i < flatPosts.length; s++, i++) {
+          const src = { ...flatPosts[i] };
+          delete src.dayDate;
+          delete src.dayLabel;
+          src.time = slots[s];
+          if (src.creative && !src.image?.startsWith("uploads/")) {
+            const [kind, name] = src.creative.split("/", 2);
+            const root = src.colorScheme === "light" ? "exports-light" : "exports";
+            if (kind === "custom") src.image = `${root}/custom/${name}.png`;
+            else if (kind === "brand") src.image = `${root}/brand/${name}.png`;
+            else if (kind === "brand-users") src.image = `${root}/brand-users/${name}.png`;
+            else if (kind === "cards") src.image = `${root}/cards/${name}.png`;
+            else if (kind === "bullets") src.image = `${root}/bullets/default.png`;
+            src.mediaType = "creative";
+          }
+          posts.push(src);
+        }
+        return { ...day, posts };
+      });
+      return { ...weekData, days };
+    }
+
+    $("#loadWeekBtn").addEventListener("click", loadWeekEditor);
+    $("#saveWeekBtn").addEventListener("click", async () => {
+      try {
+        const next = weekFromFlat();
+        await api(`/api/studio/week/${encodeURIComponent(activeWeekFile)}`, {
+          method: "PUT", body: JSON.stringify(next),
+        });
+        weekData = next;
+        setStatus($("#weekStatus"), "Woche gespeichert.", true);
+      } catch (e) {
+        setStatus($("#weekStatus"), e.message, false);
+      }
+    });
+    $("#rebuildWeekBtn").addEventListener("click", async () => {
+      try {
+        await api(`/api/studio/week/${encodeURIComponent(activeWeekFile)}/rebuild`, { method: "POST", body: "{}" });
+        setStatus($("#weekStatus"), "posts-week.json neu gebaut.", true);
+      } catch (e) {
+        setStatus($("#weekStatus"), e.message, false);
+      }
+    });
+    $("#saveFlatBtn").addEventListener("click", async () => {
+      try {
+        const pw = await api("/api/studio/posts-week");
+        const posts = flatPosts.map(({ dayDate, dayLabel, ...rest }) => {
+          const p = { ...rest };
+          if (p.creative && !p.image?.startsWith("uploads/")) {
+            const [kind, name] = p.creative.split("/", 2);
+            const root = p.colorScheme === "light" ? "exports-light" : "exports";
+            if (kind === "custom") p.image = `${root}/custom/${name}.png`;
+            else if (kind === "brand") p.image = `${root}/brand/${name}.png`;
+            else if (kind === "cards") p.image = `${root}/cards/${name}.png`;
+          }
+          return p;
+        });
+        await api("/api/studio/posts-week", {
+          method: "PUT",
+          body: JSON.stringify({ posts, syncWeek: activeWeekFile }),
+        });
+        setStatus($("#weekStatus"), "posts-week.json aktualisiert.", true);
+      } catch (e) {
+        setStatus($("#weekStatus"), e.message, false);
+      }
+    });
+
+    // Media upload
+    const uploadZone = $("#uploadZone");
+    const fileInput = $("#fileInput");
+    uploadZone.addEventListener("click", () => fileInput.click());
+    uploadZone.addEventListener("dragover", (e) => { e.preventDefault(); });
+    uploadZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files[0]) uploadFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files[0]) uploadFile(fileInput.files[0]);
+    });
+
+    async function uploadFile(file) {
+      const st = $("#uploadStatus");
+      setStatus(st, "Lade hoch …");
+      const b64 = await new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(String(fr.result).split(",")[1]);
+        fr.onerror = () => reject(new Error("Datei lesen fehlgeschlagen"));
+        fr.readAsDataURL(file);
+      });
+      try {
+        const r = await api("/api/studio/upload", {
+          method: "POST",
+          body: JSON.stringify({ filename: file.name, data: b64 }),
+        });
+        setStatus(st, `OK: ${r.path}`, true);
+        meta = await api("/api/studio/meta");
+        refreshMedia();
+      } catch (e) {
+        setStatus(st, e.message, false);
+      }
+    }
+
+    function refreshMedia() {
+      const grid = $("#mediaGrid");
+      grid.innerHTML = (meta.uploads || []).map((path) => {
+        const isVid = /\.(mp4|webm|mov)$/i.test(path);
+        const inner = isVid
+          ? `<video src="/${path}" muted></video>`
+          : `<img src="/${path}" alt="" />`;
+        return `<div class="media-thumb" data-path="${path}">${inner}<p>${path}</p></div>`;
+      }).join("") || '<p class="hint">Noch keine Uploads.</p>';
+      grid.querySelectorAll(".media-thumb").forEach((el) => {
+        el.addEventListener("click", () => {
+          navigator.clipboard?.writeText(el.dataset.path);
+          setStatus($("#uploadStatus"), "Pfad kopiert: " + el.dataset.path, true);
+        });
+      });
+    }
+
+    loadMeta().catch((e) => alert(e.message)).finally(() => requestAnimationFrame(scaleAllPreviews));
+
+    function scheduleCustomPreview() {
+      clearTimeout(customPreviewTimer);
+      customPreviewTimer = setTimeout(refreshCustomPreview, 250);
+    }
+
+    function renderCustomSlugSelect() {
+      const sel = $("#customSlugSelect");
+      const cur = customSlug;
+      const items = meta.customTemplates || [];
+      sel.innerHTML = `<option value="">— Template wählen —</option>` +
+        items.map((t) => `<option value="${t.slug}" ${t.slug === cur ? "selected" : ""}>${t.slug}${t.hasDark && t.hasLight ? " · beide" : t.hasLight ? " · light" : " · dark"}</option>`).join("");
+    }
+
+    function renderImportCreativeSelect() {
+      const sel = $("#importCreativeSelect");
+      const built = (meta.creatives || []).filter((c) => !c.custom && !String(c.id).startsWith("custom/"));
+      sel.innerHTML = `<option value="">— Creative-Template laden —</option>` +
+        built.map((c) => `<option value="${c.id}">${c.label} (${c.id})</option>`).join("");
+    }
+
+    function openCustomHtmlTab() {
+      $$("#mainNav button").forEach((b) => b.classList.toggle("active", b.dataset.panel === "custom-html"));
+      $$(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-custom-html"));
+    }
+
+    async function loadCustomPanel() {
+      try {
+        const data = await api("/api/studio/custom");
+        meta.customTemplates = data.templates;
+        customDefaults = data.defaultHtml || customDefaults;
+        renderCustomSlugSelect();
+        renderImportCreativeSelect();
+        if (!$("#customHtmlEditor").value.trim()) {
+          $("#customHtmlEditor").value = customDefaults[globalScheme] || customDefaults.dark || "";
+          refreshCustomPreview();
+        }
+        requestAnimationFrame(scaleAllPreviews);
+      } catch (e) {
+        setStatus($("#customStatus"), e.message, false);
+      }
+    }
+
+    async function loadCustomHtml(slug) {
+      if (!slug) return;
+      customSlug = slug;
+      $("#customSaveBtn").disabled = false;
+      $("#customExportBtn").disabled = false;
+      $("#customDeleteBtn").disabled = false;
+      try {
+        const data = await api(`/api/studio/custom/${encodeURIComponent(slug)}?theme=${globalScheme}`);
+        $("#customHtmlEditor").value = data.html;
+        refreshCustomPreview();
+        setStatus($("#customStatus"), `Geladen: custom/${slug} (${globalScheme})`, true);
+      } catch {
+        $("#customHtmlEditor").value = customDefaults[globalScheme] || customDefaults.dark || "";
+        refreshCustomPreview();
+        setStatus($("#customStatus"), `Neu für ${slug} (${globalScheme}) — noch nicht gespeichert`, null);
+      }
+    }
+
+    $("#customSlugSelect").addEventListener("change", (e) => {
+      if (e.target.value) loadCustomHtml(e.target.value);
+    });
+
+    $("#customHtmlEditor").addEventListener("input", scheduleCustomPreview);
+
+    $("#customNewBtn").addEventListener("click", async () => {
+      const slug = ($("#customSlugNew").value || "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-");
+      if (!slug) {
+        setStatus($("#customStatus"), "Slug eingeben (z.B. promo-sommer)", false);
+        return;
+      }
+      try {
+        await api("/api/studio/custom", {
+          method: "POST",
+          body: JSON.stringify({ slug, theme: globalScheme, html: $("#customHtmlEditor").value || undefined }),
+        });
+        customSlug = slug;
+        meta = await api("/api/studio/meta");
+        renderCustomSlugSelect();
+        $("#customSlugSelect").value = slug;
+        await loadCustomHtml(slug);
+        $("#creativeSelect").innerHTML = meta.creatives.map((c) =>
+          `<option value="${c.id}">${c.label} (${c.id})</option>`).join("");
+        setStatus($("#customStatus"), `Template custom/${slug} angelegt`, true);
+      } catch (e) {
+        setStatus($("#customStatus"), e.message, false);
+      }
+    });
+
+    $("#customSaveBtn").addEventListener("click", async () => {
+      if (!customSlug) return;
+      try {
+        await api(`/api/studio/custom/${encodeURIComponent(customSlug)}`, {
+          method: "PUT",
+          body: JSON.stringify({ html: $("#customHtmlEditor").value, theme: globalScheme }),
+        });
+        meta = await api("/api/studio/meta");
+        renderCustomSlugSelect();
+        setStatus($("#customStatus"), `Gespeichert (${globalScheme})`, true);
+      } catch (e) {
+        setStatus($("#customStatus"), e.message, false);
+      }
+    });
+
+    $("#customTemplateBtn").addEventListener("click", () => {
+      $("#customHtmlEditor").value = customDefaults[globalScheme] || customDefaults.dark || "";
+      refreshCustomPreview();
+    });
+
+    $("#customExportBtn").addEventListener("click", async () => {
+      if (!customSlug) return;
+      try {
+        if ($("#customHtmlEditor").value.trim()) {
+          await api(`/api/studio/custom/${encodeURIComponent(customSlug)}`, {
+            method: "PUT",
+            body: JSON.stringify({ html: $("#customHtmlEditor").value, theme: globalScheme }),
+          });
+        }
+        const r = await api("/api/studio/export", {
+          method: "POST",
+          body: JSON.stringify({ creative: `custom/${customSlug}`, theme: globalScheme }),
+        });
+        setStatus($("#customStatus"), "PNG: " + (r.paths || []).join(", "), true);
+      } catch (e) {
+        setStatus($("#customStatus"), e.message, false);
+      }
+    });
+
+    $("#customDeleteBtn").addEventListener("click", async () => {
+      if (!customSlug || !confirm(`Template "${customSlug}" (${globalScheme}) wirklich löschen?`)) return;
+      try {
+        await api(`/api/studio/custom/${encodeURIComponent(customSlug)}?theme=${globalScheme}`, { method: "DELETE" });
+        customSlug = "";
+        $("#customHtmlEditor").value = "";
+        refreshCustomPreview();
+        meta = await api("/api/studio/meta");
+        renderCustomSlugSelect();
+        $("#customSaveBtn").disabled = true;
+        $("#customExportBtn").disabled = true;
+        $("#customDeleteBtn").disabled = true;
+        setStatus($("#customStatus"), "Gelöscht", true);
+      } catch (e) {
+        setStatus($("#customStatus"), e.message, false);
+      }
+    });
+  </script>
+</body>
+</html>

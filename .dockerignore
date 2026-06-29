@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log*
+.env
+.env.local
+.env.*.local
+.git
+.github
+**/.git
+bot/state.json
+data/analytics.json
+exports/**/*.png
+exports-light/**/*.png
+schedule/videos
+.export-frames
+__pycache__
+*.md
+!README.md

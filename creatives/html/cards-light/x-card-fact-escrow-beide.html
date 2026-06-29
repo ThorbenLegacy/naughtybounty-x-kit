@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1200, height=675" />
+  <title>NaughtyBounty — Facts · For Users</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --background: #ffffff;
+      --foreground: #18181b;
+      --muted-foreground: #71717a;
+      --primary: #7511bd;
+      --primary-foreground: #ffffff;
+      --border: #e4e4e7;
+      --radius-xl: 12px;
+      --radius-2xl: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 1200px; height: 675px; overflow: hidden; }
+    body {
+      font-family: Figtree, ui-sans-serif, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--background);
+      color: var(--foreground);
+    }
+    .ad-canvas { width: 1200px; height: 675px; overflow: hidden; position: relative; }
+    .ad-canvas::before {
+      content: "";
+      position: absolute; inset: -40%;
+      background: radial-gradient(circle at 70% 20%, rgba(117, 17, 189, 0.07), transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    .banner {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      width: 1200px; height: 675px;
+      padding: 36px 56px 24px; text-decoration: none; color: inherit;
+    }
+    .brand-row {
+      display: flex; align-items: center; gap: 16px;
+      flex-shrink: 0; margin-bottom: 28px;
+    }
+    .brand-row img {
+      width: 56px; height: 56px; object-fit: contain; flex-shrink: 0;
+    }
+    .brand-text {
+      display: flex; flex-direction: column; gap: 4px; min-width: 0;
+    }
+    .brand-name {
+      font-size: 24px; font-weight: 800;
+      letter-spacing: -0.02em; line-height: 1.1;
+    }
+    .brand-tagline {
+      font-size: 15px; font-weight: 600;
+      letter-spacing: 0.08em; line-height: 1.15;
+      text-transform: uppercase;
+      color: var(--muted-foreground);
+    }
+    .headline {
+      font-size: 46px; font-weight: 900; line-height: 0.95;
+      letter-spacing: -0.025em; margin-bottom: 32px;
+    }
+    .accent-wrap { display: inline-flex; align-items: baseline; }
+    .accent {
+      border-radius: var(--radius-2xl); background: var(--primary);
+      color: var(--primary-foreground); padding: 0 16px;
+      box-shadow: 0 4px 16px rgba(117, 17, 189, 0.2);
+    }
+    .bullets {
+      display: flex; flex-direction: column; gap: 18px; flex: 1;
+      min-height: 0;
+      padding-top: 20px; border-top: 1px solid var(--border);
+    }
+    .bullet { display: flex; align-items: flex-start; gap: 18px; }
+    .bullet-icon {
+      width: 36px; height: 36px; flex-shrink: 0; margin-top: 4px;
+      color: var(--primary);
+    }
+    .bullet-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; }
+    .bullet-title { font-size: 28px; font-weight: 700; line-height: 1.15; }
+    .bullet-desc { font-size: 22px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.3; }
+    .badges { margin-top: 14px; margin-bottom: 0; flex-shrink: 0; }
+    .badge {
+      display: inline-flex; padding: 10px 22px; border-radius: 999px;
+      border: 1px solid var(--border); background: #f4f4f5;
+      font-size: 20px; font-weight: 600; color: var(--foreground);
+    }
+    .cta {
+      display: inline-flex; align-items: center; justify-content: center; gap: 14px;
+      width: 100%; height: 68px; border-radius: var(--radius-xl);
+      background: var(--primary); color: var(--primary-foreground);
+      font-size: 26px; font-weight: 700; flex-shrink: 0;
+      box-shadow: 0 6px 24px rgba(117, 17, 189, 0.18);
+    }
+    .cta-logo { width: 28px; height: 34px; object-fit: contain; }
+    .cta svg { width: 28px; height: 28px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .footer-area {
+      margin-top: auto; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 14px;
+      padding-top: 14px;
+    }
+    .url-line {
+      text-align: center;
+      font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted-foreground);
+      line-height: 1.2; flex-shrink: 0;
+    }
+    .kicker {
+      display: inline-flex; padding: 8px 16px; border-radius: 999px;
+      background: rgba(117, 17, 189, 0.08); border: 1px solid rgba(117, 17, 189, 0.25);
+      font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--primary); margin-bottom: 18px; width: fit-content;
+    }
+</style>
+</head>
+<body>
+  <div class="ad-canvas">
+    <a class="banner" href="https://naughtybounty.com">
+      <div class="brand-row">
+        <img src="../../../assets/logo_light.svg" alt="NaughtyBounty" width="56" height="56" />
+        <div class="brand-text">
+          <span class="brand-name">NaughtyBounty</span>
+          <span class="brand-tagline">Adult-Challenge-Marketplace</span>
+        </div>
+      </div>
+      <span class="kicker">Facts · For Users</span>
+      <h1 class="headline">
+        Treuhand schützt
+        <span class="accent-wrap"><span class="accent">beide Seiten</span></span>
+      </h1>
+      <div class="bullets">
+        <div class="bullet">
+          <span class="bullet-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.29 7 9 5 9-5"/></svg></span>
+          <div>
+            <div class="bullet-title">Für dich</div>
+            <div class="bullet-desc">Geld erst frei nach Lieferung</div>
+          </div>
+        </div>
+        <div class="bullet">
+          <span class="bullet-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
+          <div>
+            <div class="bullet-title">Für Creator</div>
+            <div class="bullet-desc">Budget reserviert — Auszahlung garantiert</div>
+          </div>
+        </div>
+        <div class="bullet">
+          <span class="bullet-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></span>
+          <div>
+            <div class="bullet-title">Mittelsmann</div>
+            <div class="bullet-desc">NaughtyBounty hält Treuhand bis Freigabe</div>
+          </div>
+        </div>
+      </div>
+      <div class="badges"><span class="badge">Escrow · Review</span></div>
+      <div class="footer-area">
+        <div class="cta">
+          <img class="cta-logo" src="../../../assets/logo_small_light.svg" alt="" width="28" height="34" />
+          Jetzt starten
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </div>
+        <p class="url-line">naughtybounty.com</p>
+      </div>
+    </a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,70 @@
+{
+  "account": "LucaBrandblue",
+  "link": "https://naughtybounty.com/for-creators",
+  "posts": [
+    {
+      "id": "deine-regeln",
+      "text": "Dein Content. Deine Regeln. Deine Einnahmen.\n\nStarte als verifizierte 18+ Creatorin — diskret, flexibel, selbstbestimmt.",
+      "image": "exports/brand/deine-regeln.png",
+      "hashtags": ["Creator", "ContentCreator", "OnlyFansAlternative", "NaughtyBounty"]
+    },
+    {
+      "id": "du-entscheidest",
+      "text": "Du entscheidest, was du teilst.\n\nMonetarisiere exklusive Inhalte ohne deine Kontrolle abzugeben.",
+      "image": "exports/brand/du-entscheidest.png",
+      "hashtags": ["Creator", "ContentCreator", "AdultCreator", "NaughtyBounty"]
+    },
+    {
+      "id": "privatsphaere",
+      "text": "Deine Privatsphäre bleibt geschützt.\n\nMonetarisiere Inhalte mit Kontrolle über Sichtbarkeit und Grenzen.",
+      "image": "exports/brand/privatsphaere.png",
+      "hashtags": ["Creator", "Privacy", "AdultCreator", "NaughtyBounty"]
+    },
+    {
+      "id": "diskret-wachsen",
+      "text": "Diskret starten. Sicher wachsen.\n\nBaue dein 18+ Creator-Profil in deinem Tempo auf.",
+      "image": "exports/brand/diskret-wachsen.png",
+      "hashtags": ["Creator", "ContentCreator", "NaughtyBounty"]
+    },
+    {
+      "id": "keine-agentur",
+      "text": "Keine Agentur-Spielchen. Deine Kontrolle.\n\nDein Profil, deine Regeln, deine Einnahmen.",
+      "image": "exports/brand/keine-agentur.png",
+      "hashtags": ["Creator", "CreatorFirst", "NaughtyBounty"]
+    },
+    {
+      "id": "kein-chatten",
+      "text": "Kein Bock auf Chatten?\n\nVerdiene Geld mit deinem Content — ohne endlosen DM-Stress.",
+      "image": "exports/brand/kein-chatten.png",
+      "hashtags": ["Creator", "MonetizeContent", "OnlyFansAlternative", "NaughtyBounty"]
+    },
+    {
+      "id": "anonym",
+      "text": "Anonym Geld verdienen mit deinem Content.\n\nDiskret starten. Selbstbestimmt wachsen. 18+ only.",
+      "image": "exports/brand/anonym.png",
+      "hashtags": ["Creator", "AdultCreator", "AnonymousCreator", "NaughtyBounty"]
+    },
+    {
+      "id": "new-onlyfans",
+      "text": "New OnlyFans?\n\nChallenges, Drops & flexible Monetarisierung — creator-first auf NaughtyBounty.",
+      "image": "exports/brand/new-onlyfans.png",
+      "hashtags": ["OnlyFans", "Creator", "OnlyFansAlternative", "NaughtyBounty"]
+    },
+    {
+      "id": "bullets-default",
+      "text": "Kein Bock auf Chatten? Verdiene mit Content.\n\nPakete verkaufen · Challenges · skalieren. 18+ · verifiziert.",
+      "image": "exports/bullets/default.png",
+      "hashtags": ["MonetizeContent", "AdultCreator", "Challenges", "NaughtyBounty"]
+    },
+    {
+      "id": "text-only-1",
+      "text": "Du entscheidest, was du teilst — und wie du verdienst.\n\n18+ Challenge-Marketplace für Creatorinnen.",
+      "hashtags": ["Creator", "ContentCreator", "NaughtyBounty"]
+    },
+    {
+      "id": "text-only-2",
+      "text": "Flexible Monetarisierung statt leerer Versprechen.\n\nKeine Verpflichtung. Du behältst die Kontrolle.",
+      "hashtags": ["CreatorEconomy", "Creator", "NaughtyBounty"]
+    }
+  ]
+}

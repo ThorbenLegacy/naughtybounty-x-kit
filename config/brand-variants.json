@@ -1,0 +1,51 @@
+[
+  {
+    "id": "deine-regeln",
+    "title": "Dein Content. Deine Regeln.",
+    "fontSize": 46,
+    "logoSize": 340,
+    "tagline": "Dein Content.<br />Deine <span class=\"accent-wrap\"><span class=\"accent\">Regeln.</span></span><br />Deine Einnahmen."
+  },
+  {
+    "id": "du-entscheidest",
+    "title": "Du entscheidest",
+    "fontSize": 56,
+    "tagline": "Du entscheidest,<br /><span class=\"accent-wrap\"><span class=\"accent\">was du teilst.</span></span>"
+  },
+  {
+    "id": "privatsphaere",
+    "title": "Privatsphäre",
+    "fontSize": 52,
+    "tagline": "Deine Privatsphäre<br /><span class=\"accent-wrap\"><span class=\"accent\">bleibt geschützt.</span></span>"
+  },
+  {
+    "id": "diskret-wachsen",
+    "title": "Diskret starten",
+    "fontSize": 56,
+    "tagline": "Diskret starten.<br /><span class=\"accent-wrap\"><span class=\"accent\">Sicher wachsen.</span></span>"
+  },
+  {
+    "id": "keine-agentur",
+    "title": "Keine Agentur-Spielchen",
+    "fontSize": 48,
+    "tagline": "Keine Agentur-Spielchen.<br /><span class=\"accent-wrap\"><span class=\"accent\">Deine Kontrolle.</span></span>"
+  },
+  {
+    "id": "kein-chatten",
+    "title": "Kein Bock auf Chatten?",
+    "fontSize": 52,
+    "tagline": "Kein Bock auf<br /><span class=\"accent-wrap\"><span class=\"accent\">Chatten?</span></span>"
+  },
+  {
+    "id": "anonym",
+    "title": "Anonym verdienen",
+    "fontSize": 46,
+    "tagline": "<span class=\"accent-wrap\"><span class=\"accent\">Anonym</span></span> Geld verdienen<br />mit deinem <span class=\"accent-wrap\"><span class=\"accent\">Content</span></span>"
+  },
+  {
+    "id": "new-onlyfans",
+    "title": "New OnlyFans?",
+    "fontSize": 58,
+    "tagline": "<span class=\"accent-wrap\"><span class=\"accent\">New</span></span> OnlyFans?"
+  }
+]
