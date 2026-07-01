@@ -18,7 +18,7 @@
   {
     "id": "treuhand-sicher",
     "title": "Treuhand",
-    "fontSize": 56,
+    "fontSize": 52,
     "tagline": "Zahlen in<br /><span class=\"accent-wrap\"><span class=\"accent\">Treuhand.</span></span><br />Erst liefern, dann freigeben.",
     "href": "https://naughtybounty.com",
     "trust": "Verifizierte Creator · Geschützte Auszahlung"
@@ -34,7 +34,7 @@
   {
     "id": "drops-stobern",
     "title": "Drops",
-    "fontSize": 56,
+    "fontSize": 52,
     "tagline": "Fertige Pakete<br /><span class=\"accent-wrap\"><span class=\"accent\">stöbern.</span></span><br />Sofort kaufen.",
     "href": "https://naughtybounty.com",
     "trust": "Kein Abo · Verifiziert · Escrow"
